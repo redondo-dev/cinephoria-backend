@@ -5,7 +5,8 @@ import Seance from './seance.model.js';
 import Salle from './salle.model.js';
 import Cinema from './cinema.model.js';
 import Genre from './genre.model.js';
-
+import User from './user.model.js';
+import Role from './role.model.js';
 
 
 
@@ -28,8 +29,11 @@ Salle.belongsTo(Cinema, { foreignKey: 'cinema_id', as: 'cinema' });
 Cinema.hasMany(Salle, { foreignKey: 'cinema_id', as: 'salles' });
 
 
+// Association : un utilisateur a un rôle
+User.belongsTo(Role, { foreignKey: "role_id", as: "roleDetails" });
+Role.hasMany(User, { foreignKey: "role_id", as: "users" });
 
 
 
 
-export { sequelize, Film, Seance, Salle, Cinema, Genre };
+export { sequelize, Film, Seance, Salle, Cinema, Genre,User,Role };
