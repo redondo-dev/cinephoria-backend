@@ -4,7 +4,7 @@ import { sequelize, Film, Seance, Salle, Cinema, Genre } from './src/models/inde
 async function createTestData() {
   try {
     await sequelize.authenticate();
-    console.log('✅ Connexion OK');
+    console.log('Connexion OK');
 
     // Synchroniser les tables sans écraser les données existantes
     await sequelize.sync({ alter: true });

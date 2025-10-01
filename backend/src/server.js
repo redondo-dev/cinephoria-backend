@@ -1,6 +1,9 @@
 import 'dotenv/config';
 import app from './app.js';
-import { sequelize, Film, Seance, Salle, Cinema } from './models/index.js';
+import { sequelize } from './models/index.js';
+import { connectMongo } from "./config/mongo.js";
+
+connectMongo(); // Connexion à MongoDB
 
 
 
@@ -13,6 +16,7 @@ const startServer = async () => {
   
     await sequelize.sync(); 
     console.log('✅ Modèles synchronisés avec la base');
+
 
     app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
   } catch (err) {

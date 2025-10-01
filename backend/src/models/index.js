@@ -7,6 +7,7 @@ import Cinema from './cinema.model.js';
 import Genre from './genre.model.js';
 import User from './user.model.js';
 import Role from './role.model.js';
+import Reservation from './reservation.model.js';
 
 
 
@@ -34,6 +35,10 @@ User.belongsTo(Role, { foreignKey: "role_id", as: "roleDetails" });
 Role.hasMany(User, { foreignKey: "role_id", as: "users" });
 
 
+// Association
+Reservation.belongsTo(Seance, { foreignKey: "seance_id", onDelete: "CASCADE" });
+Seance.hasMany(Reservation, { foreignKey: "seance_id" });
 
 
-export { sequelize, Film, Seance, Salle, Cinema, Genre,User,Role };
+
+export { sequelize, Film, Seance, Salle, Cinema, Genre,User,Role,Reservation };
