@@ -97,7 +97,7 @@ export const deleteEmployee = async (req, res) => {
       return res.status(404).json({ message: "Employé non trouvé" });
     }
 
-    if (user.role_id !== 2) {
+    if (user.role_id !== 3) {
       return res.status(403).json({ 
         message: "Cet utilisateur n'est pas un employé" 
       });
