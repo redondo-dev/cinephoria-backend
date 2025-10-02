@@ -28,7 +28,7 @@ export const login = async (req, res) => {
 
     // Générer un JWT
     const token = jwt.sign(
-      { id: user.id, email: user.email },
+      { id: user.id, email: user.email, role_id:user.role_id,role:user.roleDetails?.nom_role },
       JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -41,7 +41,13 @@ export const login = async (req, res) => {
       maxAge: 3600000, // 1h
     });
 
-    res.json({ message: "Connexion réussie" });
+    res.json({ message: "Connexion réussie" , token,
+      user: {
+        id: user.id,
+        email: user.email,
+        role_id: user.role_id,
+        role: user.roleDetails?.nom_role
+      }});
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

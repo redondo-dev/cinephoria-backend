@@ -4,6 +4,13 @@ import { DataTypes } from "sequelize";
 import sequelize from "../config/database.js";
 
 const User = sequelize.define("User", {
+
+
+  id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true
+    },
   email: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -13,11 +20,34 @@ const User = sequelize.define("User", {
     type: DataTypes.STRING,
     allowNull: false
   },
+   prenom: {
+      type: DataTypes.STRING,
+      allowNull: false  // ⚠️ Important
+    },
+    nom: {
+      type: DataTypes.STRING,
+      allowNull: false  // ⚠️ Important
+    },
+    username: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
   role_id: { // <-- on utilise le foreign key vers la table role
     type: DataTypes.INTEGER,
     allowNull: false
+  },
+   isConfirmed: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+        field: 'isconfirmed'
+    },
+    mustChangePassword: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+        field: 'mustchangepassword'
+    }
   }
-}, {
+, {
   freezeTableName: true,
   tableName: "utilisateur",
   timestamps: false,
