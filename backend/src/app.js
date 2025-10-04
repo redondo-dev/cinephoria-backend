@@ -5,7 +5,7 @@ import authRoutes from "../src/routes/auth/auth.routes.js";
 import protectedRoutes from "../src/routes/auth/protected.routes.js";
 import adminRoutes from "../src/routes/admin.routes.js";
 import reservationRoutes from "../src/routes/reservation.routes.js";
-
+import employeeRoutes from "../src/routes/employee.routes.js";
 
 
 const app = express();
@@ -22,6 +22,7 @@ app.use("/api", protectedRoutes);
 app.use("/api/reservations", reservationRoutes);
 // Routes Admin protégées
 app.use("/admin", adminRoutes);
+app.use('/employee',employeeRoutes);
 
 export default app;
 
