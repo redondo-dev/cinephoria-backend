@@ -16,7 +16,26 @@ const Seance = sequelize.define("Seance", {
     type: DataTypes.DATEONLY,
     allowNull: false,
   },
-
+ film_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'film',
+      key: 'id'
+    },
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE'
+  },
+  salle_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'salle',
+      key: 'id'
+    },
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE'
+  }
 
 }, {
   tableName: "seance",
