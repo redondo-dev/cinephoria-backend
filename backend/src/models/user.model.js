@@ -22,17 +22,17 @@ const User = sequelize.define("User", {
   },
    prenom: {
       type: DataTypes.STRING,
-      allowNull: false  // ⚠️ Important
+      allowNull: false  
     },
     nom: {
       type: DataTypes.STRING,
-      allowNull: false  // ⚠️ Important
+      allowNull: false  
     },
     username: {
       type: DataTypes.STRING,
       allowNull: true
     },
-  role_id: { // <-- on utilise le foreign key vers la table role
+  role_id: { // <--= foreign key  vers la table role
     type: DataTypes.INTEGER,
     allowNull: false
   },
