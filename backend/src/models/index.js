@@ -1,13 +1,11 @@
 // models/index.js
 import sequelize from '../config/database.js';
-// // import Film from './film.model.js';
-// import Seance from './seance.model.js';
-// import Salle from './salle.model.js';
-// import Cinema from './cinema.model.js';
-// import Genre from './genre.model.js';
-import User from './user.model.js';
-import Role from './role.model.js';
-import Reservation from './reservation.model.js';
+import Film from './film.model.js';
+import Seance from './seance.model.js';
+import Salle from './salle.model.js';
+import Cinema from './cinema.model.js';
+import Genre from './genre.model.js';
+
 
 
 
@@ -29,13 +27,9 @@ import Reservation from './reservation.model.js';
 // Salle.belongsTo(Cinema, { foreignKey: 'cinema_id', as: 'cinema' });
 // Cinema.hasMany(Salle, { foreignKey: 'cinema_id', as: 'salles' });
 
-// Association
-// Reservation.belongsTo(Seance, { foreignKey: "seance_id", onDelete: "CASCADE" });
-// Seance.hasMany(Reservation, { foreignKey: "seance_id" });
-
-// Relation avec la table Role
-User.belongsTo(Role, { foreignKey: "role_id", as: "role" });
 
 
 
-export { sequelize, User, Role, Reservation };
+
+
+export { sequelize, Film, Seance, Salle, Cinema, Genre };

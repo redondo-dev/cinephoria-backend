@@ -1,5 +1,5 @@
 import express from 'express';
-
+import protectedRoutes from "../src/routes/auth/protected.routes.js";
 import reservationRoutes from './routes/reservation.route.js';
 import cors from 'cors';
 import cookieParser from "cookie-parser";
@@ -12,6 +12,7 @@ const app = express();
 app.use(cors());
 // Middleware pour parser le JSON
 app.use(express.json());
+
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors({
@@ -21,6 +22,12 @@ app.use(cors({
 
 // Routes pour les réservations
 app.use('/api/reservations', reservationRoutes);
+
+app.use(cookieParser()); // pour lire les cookies
+
+app.use('/api/auth/', authRoutes);
+app.use("/api", protectedRoutes);
+
 
 // Routes
 
