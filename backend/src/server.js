@@ -1,9 +1,6 @@
 import 'dotenv/config';
 import app from './app.js';
-import { sequelize } from './models/index.js';
-import { connectMongo } from "./config/mongo.js";
-
-connectMongo(); // Connexion à MongoDB
+import { sequelize, Film, Seance, Salle, Cinema } from './models/index.js';
 
 
 

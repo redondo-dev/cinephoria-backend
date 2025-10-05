@@ -20,6 +20,7 @@ const User = sequelize.define("User", {
     type: DataTypes.STRING,
     allowNull: false
   },
+<<<<<<< HEAD
    prenom: {
       type: DataTypes.STRING,
       allowNull: false  
@@ -33,6 +34,9 @@ const User = sequelize.define("User", {
       allowNull: true
     },
   role_id: { // <--= foreign key  vers la table role
+=======
+  role_id: { // foreign key vers la table role
+>>>>>>> origin/dev
     type: DataTypes.INTEGER,
     allowNull: false
   },

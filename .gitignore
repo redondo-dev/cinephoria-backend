@@ -13,6 +13,7 @@ yarn-error.log*
 
 # Environnement
 /backend/.env
+/backend/.env.test
 /backend/.env.local
 /backend/.env.development.local
 /backend/.env.test.local
