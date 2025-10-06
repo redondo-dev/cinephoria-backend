@@ -22,11 +22,11 @@ const User = sequelize.define("User", {
   },
    prenom: {
       type: DataTypes.STRING,
-      allowNull: false  // ⚠️ Important
+      allowNull: false  
     },
     nom: {
       type: DataTypes.STRING,
-      allowNull: false  // ⚠️ Important
+      allowNull: false  
     },
     username: {
       type: DataTypes.STRING,
@@ -34,7 +34,11 @@ const User = sequelize.define("User", {
     },
   role_id: { // <-- on utilise le foreign key vers la table role
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
+    references: {
+      model: "role",
+      key: "id",
+    },
   },
    isConfirmed: {
       type: DataTypes.BOOLEAN,
