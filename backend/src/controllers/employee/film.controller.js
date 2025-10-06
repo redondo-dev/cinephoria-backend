@@ -1,10 +1,11 @@
 // controllers/employee/film.controller.js
 import Film from '../../models/film.model.js';
+import Seance from '../../models/seance.model.js';
 
 // Récupérer tous les films
 export const getAllFilms = async (req, res) => {
   try {
-    const films = await Film.find().sort({ createdAt: -1 });
+    const films = await Film.findAll({order: [["date_ajout", "DESC"]] })
     res.status(200).json({
       success: true,
       count: films.length,
@@ -22,7 +23,7 @@ export const getAllFilms = async (req, res) => {
 // Récupérer un film par ID
 export const getFilmById = async (req, res) => {
   try {
-    const film = await Film.findById(req.params.id);
+    const film = await Film.findByPk(req.params.id);
     
     if (!film) {
       return res.status(404).json({
@@ -80,7 +81,7 @@ export const createFilm = async (req, res) => {
      note_moyenne,
      nb_avis,
      genre_id,
-    createdBy: req.user.id
+  
     });
 
     res.status(201).json({
@@ -100,7 +101,7 @@ export const createFilm = async (req, res) => {
 // Mettre à jour un film
 export const updateFilm = async (req, res) => {
   try {
-    const film = await Film.findById(req.params.id);
+    const film = await Film.findByPk(req.params.id);
 
     if (!film) {
       return res.status(404).json({
@@ -109,7 +110,7 @@ export const updateFilm = async (req, res) => {
       });
     }
 
-    const updatedFilm = await Film.findByIdAndUpdate(
+    const updatedFilm = await Film.findByPk(
       req.params.id,
       { ...req.body, updatedBy: req.user.id },
       { new: true, runValidators: true }
@@ -130,10 +131,11 @@ export const updateFilm = async (req, res) => {
 };
 
 // Supprimer un film
+
 export const deleteFilm = async (req, res) => {
   try {
-    const film = await Film.findById(req.params.id);
-
+    // Vérifier si le film existe
+    const film = await Film.findByPk(req.params.id);
     if (!film) {
       return res.status(404).json({
         success: false,
@@ -142,8 +144,7 @@ export const deleteFilm = async (req, res) => {
     }
 
     // Vérifier s'il y a des séances liées à ce film
-    const Seance = await import('../../models/seance.model.js');
-    const seancesCount = await Seance.default.countDocuments({ film: req.params.id });
+    const seancesCount = await Seance.count({ where: { film_id: req.params.id } });
 
     if (seancesCount > 0) {
       return res.status(400).json({
@@ -152,7 +153,8 @@ export const deleteFilm = async (req, res) => {
       });
     }
 
-    await Film.findByIdAndDelete(req.params.id);
+    // Supprimer le film
+    await film.destroy();
 
     res.status(200).json({
       success: true,

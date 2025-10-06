@@ -15,40 +15,55 @@ export const login = async (req, res) => {
   }
 
   try {
-    const user = await User.findOne({ where: { email } ,
-       include: [{ model: Role, as: "roleDetails" }]});
-      console.log(user.roleDetails.nom_role);
+    const user = await User.findOne({
+      where: { email },
+      include: [{ model: Role, as: "roleDetails" }],
+    });
 
-     if (!user) return res.status(401).json({ message: "Utilisateur non trouvé" });
-    // Vérif email ET password
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+    if (!user) {
+      return res.status(401).json({ message: "Utilisateur non trouvé" });
+    }
+
+    console.log("Role :", user.roleDetails?.nom_role);
+
+    // Vérification du mot de passe
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
       return res.status(401).json({ message: "Identifiants invalides" });
     }
-  
 
-    // Générer un JWT
+    // Générer le JWT
     const token = jwt.sign(
-      { id: user.id, email: user.email, role_id:user.role_id,role:user.roleDetails?.nom_role },
+      {
+        id: user.id,
+        email: user.email,
+        role_id: user.role_id,
+        role: user.roleDetails?.nom_role,
+      },
       JWT_SECRET,
       { expiresIn: "1h" }
     );
 
-    // Stocker le JWT dans un cookie HttpOnly
+    // Cookie HttpOnly
     res.cookie("auth_token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 3600000, // 1h
+      maxAge: 3600000,
     });
 
-    res.json({ message: "Connexion réussie" , token,
+    res.json({
+      message: "Connexion réussie",
+      token,
       user: {
         id: user.id,
         email: user.email,
         role_id: user.role_id,
-        role: user.roleDetails?.nom_role
-      }});
+        role: user.roleDetails?.nom_role,
+      },
+    });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: err.message });
   }
 };
