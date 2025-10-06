@@ -1,27 +1,32 @@
 // controllers/employee/seance.controller.js
+import { Op } from 'sequelize';
 import Seance from '../../models/seance.model.js';
 import Film from '../../models/film.model.js';
 import Salle from '../../models/salle.model.js';
+import Reservation from '../../models/reservation.model.js'; // Pour suppression
 
 // Récupérer toutes les séances
 export const getAllSeances = async (req, res) => {
   try {
     const { filmId, salleId, dateDebut, dateFin } = req.query;
-    
-    // Construire le filtre de recherche
-    let filter = {};
-    if (filmId) filter.film = filmId;
-    if (salleId) filter.salle = salleId;
+
+    const where = {};
+    if (filmId) where.filmId = filmId;
+    if (salleId) where.salleId = salleId;
     if (dateDebut || dateFin) {
-      filter.dateHeure = {};
-      if (dateDebut) filter.dateHeure.$gte = new Date(dateDebut);
-      if (dateFin) filter.dateHeure.$lte = new Date(dateFin);
+      where.dateHeureDebut = {};
+      if (dateDebut) where.dateHeureDebut[Op.gte] = new Date(dateDebut);
+      if (dateFin) where.dateHeureDebut[Op.lte] = new Date(dateFin);
     }
 
-    const seances = await Seance.find(filter)
-      .populate('film', 'titre duree genre affiche')
-      .populate('salle', 'numero nombrePlaces qualiteProjection')
-      .sort({ dateHeure: 1 });
+    const seances = await Seance.findAll({
+      where,
+      include: [
+        { model: Film, as: 'film', attributes: ['titre', 'duree', 'genre_id', 'affiche'] },
+        { model: Salle, as :"salle", attributes: ['nom_salle', 'capacite', 'qualite_projection'] }
+      ],
+      order: [['dateHeureDebut', 'ASC']]
+    });
 
     res.status(200).json({
       success: true,
@@ -40,10 +45,13 @@ export const getAllSeances = async (req, res) => {
 // Récupérer une séance par ID
 export const getSeanceById = async (req, res) => {
   try {
-    const seance = await Seance.findById(req.params.id)
-      .populate('film')
-      .populate('salle');
-    
+    const seance = await Seance.findByPk(req.params.id, {
+      include: [
+        { model: Film, as: 'film', attributes: ['titre', 'duree', 'genre_id', 'affiche'] },
+        { model: Salle, as: 'salle', attributes: ['nom_salle', 'capacite', 'qualite_projection'] }
+      ]
+    });
+
     if (!seance) {
       return res.status(404).json({
         success: false,
@@ -51,10 +59,7 @@ export const getSeanceById = async (req, res) => {
       });
     }
 
-    res.status(200).json({
-      success: true,
-      data: seance
-    });
+    res.status(200).json({ success: true, data: seance });
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -64,69 +69,73 @@ export const getSeanceById = async (req, res) => {
   }
 };
 
+
+
 // Créer une nouvelle séance
 export const createSeance = async (req, res) => {
   try {
-    const { film, salle, dateHeure, tarif, langue, sousTitres } = req.body;
+    const { date_seance, film_id, salle_id } = req.body;
 
-    // Validation des champs requis
-    if (!film || !salle || !dateHeure || !tarif) {
+    // Validation des champs
+    if (!film_id || !salle_id || !date_seance) {
       return res.status(400).json({
         success: false,
-        message: 'Veuillez fournir tous les champs requis (film, salle, dateHeure, tarif)'
+        message: 'Veuillez fournir tous les champs requis (film_id, salle_id, date_seance)'
       });
     }
 
-    // Vérifier que le film existe
-    const filmExists = await Film.findById(film);
-    if (!filmExists) {
-      return res.status(404).json({
-        success: false,
-        message: 'Film non trouvé'
+    // Vérification du film
+    const film = await Film.findByPk(film_id);
+    if (!film) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Film non trouvé' 
       });
     }
 
-    // Vérifier que la salle existe
-    const salleExists = await Salle.findById(salle);
-    if (!salleExists) {
-      return res.status(404).json({
-        success: false,
-        message: 'Salle non trouvée'
+    // Vérification de la salle
+    const salle = await Salle.findByPk(salle_id);
+    if (!salle) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Salle non trouvée' 
       });
     }
 
-    // Vérifier que la date n'est pas dans le passé
-    if (new Date(dateHeure) < new Date()) {
+    // Validation de la date
+    const dateDebut = new Date(date_seance);
+    if (dateDebut < new Date()) {
       return res.status(400).json({
         success: false,
         message: 'La date et heure de la séance ne peuvent pas être dans le passé'
       });
     }
 
-    // Calculer l'heure de fin de la séance
-    const dateHeureDebut = new Date(dateHeure);
-    const dateHeureFin = new Date(dateHeureDebut.getTime() + filmExists.duree * 60000 + 30 * 60000); // durée film + 30 min nettoyage
+    // Extraire juste la date (YYYY-MM-DD) pour date_seance
+    const dateOnly = dateDebut.toISOString().split('T')[0];
 
-    // Vérifier qu'il n'y a pas de conflit avec d'autres séances dans la même salle
+    // Calcul de la date de fin : durée du film + 30 min nettoyage
+    const dateFin = new Date(dateDebut.getTime() + film.duree * 60000 + 30 * 60000);
+
+    // Vérification des conflits
     const conflictSeance = await Seance.findOne({
-      salle,
-      $or: [
-        // La nouvelle séance commence pendant une séance existante
-        {
-          dateHeure: { $lte: dateHeureDebut },
-          dateHeureFin: { $gt: dateHeureDebut }
-        },
-        // La nouvelle séance se termine pendant une séance existante
-        {
-          dateHeure: { $lt: dateHeureFin },
-          dateHeureFin: { $gte: dateHeureFin }
-        },
-        // La nouvelle séance englobe une séance existante
-        {
-          dateHeure: { $gte: dateHeureDebut },
-          dateHeureFin: { $lte: dateHeureFin }
-        }
-      ]
+      where: {
+        salle_id,
+        [Op.or]: [
+          {
+            dateHeureDebut: { [Op.lte]: dateDebut },
+            dateHeureFin: { [Op.gt]: dateDebut }
+          },
+          {
+            dateHeureDebut: { [Op.lt]: dateFin },
+            dateHeureFin: { [Op.gte]: dateFin }
+          },
+          {
+            dateHeureDebut: { [Op.gte]: dateDebut },
+            dateHeureFin: { [Op.lte]: dateFin }
+          }
+        ]
+      }
     });
 
     if (conflictSeance) {
@@ -136,28 +145,39 @@ export const createSeance = async (req, res) => {
       });
     }
 
+    // Création de la séance (ne pas inclure l'id, il sera auto-généré)
     const seance = await Seance.create({
-      film,
-      salle,
-      dateHeure: dateHeureDebut,
-      dateHeureFin,
-      tarif,
-      langue,
-      sousTitres,
-      placesDisponibles: salleExists.nombrePlaces,
-      createdBy: req.user.id
+      film_id,
+      salle_id,
+      date_seance: dateOnly,           // Date seule (YYYY-MM-DD)
+      dateHeureDebut: dateDebut,       // Date avec heure complète
+      dateHeureFin: dateFin            // Date de fin avec heure
+    
     });
 
-    // Populer les données avant de renvoyer
-    await seance.populate('film', 'titre duree genre affiche');
-    await seance.populate('salle', 'numero nombrePlaces qualiteProjection');
+    // Récupérer les relations pour renvoyer
+    const seancePopulated = await Seance.findByPk(seance.id, {
+      include: [
+        { 
+          model: Film, 
+          as: 'film', 
+          attributes: ['titre', 'duree', 'genre_id', 'affiche'] 
+        },
+        { 
+          model: Salle, 
+          as: 'salle', 
+          attributes: ['nom_salle', 'capacite', 'qualite_projection'] 
+        }
+      ]
+    });
 
     res.status(201).json({
       success: true,
       message: 'Séance créée avec succès',
-      data: seance
+      data: seancePopulated
     });
   } catch (error) {
+    console.error('Erreur createSeance:', error);
     res.status(500).json({
       success: false,
       message: 'Erreur lors de la création de la séance',
@@ -169,74 +189,119 @@ export const createSeance = async (req, res) => {
 // Mettre à jour une séance
 export const updateSeance = async (req, res) => {
   try {
-    const seance = await Seance.findById(req.params.id);
-
+    const seance = await Seance.findByPk(req.params.id);
     if (!seance) {
-      return res.status(404).json({
-        success: false,
-        message: 'Séance non trouvée'
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Séance non trouvée' 
       });
     }
 
-    // Si la séance a déjà commencé, interdire les modifications
-    if (seance.dateHeure < new Date()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Impossible de modifier une séance qui a déjà commencé'
+    // Vérifier si la séance n'est pas passée
+    if (seance.dateHeureDebut < new Date()) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Impossible de modifier une séance passée' 
       });
     }
 
-    // Si la date/heure est modifiée, vérifier les conflits
-    if (req.body.dateHeure || req.body.salle) {
-      const newDateHeure = req.body.dateHeure ? new Date(req.body.dateHeure) : seance.dateHeure;
-      const newSalle = req.body.salle || seance.salle;
-      
-      const film = await Film.findById(req.body.film || seance.film);
-      const dateHeureFin = new Date(newDateHeure.getTime() + film.duree * 60000 + 30 * 60000);
+    const { film_id, salle_id, date_seance } = req.body;
 
-      const conflictSeance = await Seance.findOne({
-        _id: { $ne: req.params.id },
-        salle: newSalle,
-        $or: [
-          {
-            dateHeure: { $lte: newDateHeure },
-            dateHeureFin: { $gt: newDateHeure }
+    // Déterminer la nouvelle date ou garder l'ancienne
+    let dateDebut = date_seance ? new Date(date_seance) : seance.dateHeureDebut;
+    
+    // Extraire juste la date (YYYY-MM-DD)
+    const dateOnly = dateDebut.toISOString().split('T')[0];
+    
+    // Récupérer le film (nouveau ou existant)
+    const film = film_id 
+      ? await Film.findByPk(film_id) 
+      : await Film.findByPk(seance.film_id);
+    
+    if (!film) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Film non trouvé' 
+      });
+    }
+
+    // Récupérer la salle (nouvelle ou existante)
+    const salle = salle_id 
+      ? await Salle.findByPk(salle_id) 
+      : await Salle.findByPk(seance.salle_id);
+    
+    if (!salle) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Salle non trouvée' 
+      });
+    }
+
+    // Calculer la date de fin
+    const dateFin = new Date(dateDebut.getTime() + film.duree * 60000 + 30 * 60000);
+
+    // Vérification des conflits (exclure la séance actuelle)
+    const conflictSeance = await Seance.findOne({
+      where: {
+        id: { [Op.ne]: seance.id },
+        salle_id: salle.id,
+        [Op.or]: [
+          { 
+            dateHeureDebut: { [Op.lte]: dateDebut }, 
+            dateHeureFin: { [Op.gt]: dateDebut } 
           },
-          {
-            dateHeure: { $lt: dateHeureFin },
-            dateHeureFin: { $gte: dateHeureFin }
+          { 
+            dateHeureDebut: { [Op.lt]: dateFin }, 
+            dateHeureFin: { [Op.gte]: dateFin } 
           },
-          {
-            dateHeure: { $gte: newDateHeure },
-            dateHeureFin: { $lte: dateHeureFin }
+          { 
+            dateHeureDebut: { [Op.gte]: dateDebut }, 
+            dateHeureFin: { [Op.lte]: dateFin } 
           }
         ]
-      });
-
-      if (conflictSeance) {
-        return res.status(400).json({
-          success: false,
-          message: 'Un conflit d\'horaire existe avec une autre séance dans cette salle'
-        });
       }
+    });
 
-      req.body.dateHeureFin = dateHeureFin;
+    if (conflictSeance) {
+      return res.status(400).json({
+        success: false,
+        message: 'Un conflit d\'horaire existe avec une autre séance dans cette salle'
+      });
     }
 
-    const updatedSeance = await Seance.findByIdAndUpdate(
-      req.params.id,
-      { ...req.body, updatedBy: req.user.id },
-      { new: true, runValidators: true }
-    )
-      .populate('film', 'titre duree genre affiche')
-      .populate('salle', 'numero nombrePlaces qualiteProjection');
+    // Mise à jour de la séance
+    await seance.update({
+      film_id: film.id,
+      salle_id: salle.id,
+      date_seance: dateOnly,         // Date seule (YYYY-MM-DD)
+      dateHeureDebut: dateDebut,     // Date avec heure complète
+      dateHeureFin: dateFin          // Date de fin avec heure
+    
+    });
+
+    // Récupérer la séance mise à jour avec les relations
+    const seancePopulated = await Seance.findByPk(seance.id, {
+      include: [
+        { 
+          model: Film, 
+          as: 'film', 
+          attributes: ['titre', 'duree', 'genre_id', 'affiche'] 
+        },
+        { 
+          model: Salle, 
+          as: 'salle', 
+          attributes: ['nom_salle', 'capacite', 'qualite_projection'] 
+        }
+      ]
+    });
 
     res.status(200).json({
       success: true,
       message: 'Séance mise à jour avec succès',
-      data: updatedSeance
+      data: seancePopulated
     });
   } catch (error) {
+    console.error('Erreur updateSeance:', error);
     res.status(500).json({
       success: false,
       message: 'Erreur lors de la mise à jour de la séance',
@@ -245,22 +310,21 @@ export const updateSeance = async (req, res) => {
   }
 };
 
-// Supprimer une séance
 export const deleteSeance = async (req, res) => {
   try {
-    const seance = await Seance.findById(req.params.id);
-
+    const seance = await Seance.findByPk(req.params.id);
     if (!seance) {
-      return res.status(404).json({
-        success: false,
-        message: 'Séance non trouvée'
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Séance non trouvée' 
       });
     }
 
-    // Vérifier s'il y a des réservations pour cette séance
-    const Reservation = await import('../../models/reservation.model.js');
-    const reservationsCount = await Reservation.default.countDocuments({ seance: req.params.id });
-
+    // Vérifier si des réservations existent
+    const reservationsCount = await Reservation.count({ 
+      where: { seance_id: seance.id } 
+    });
+    
     if (reservationsCount > 0) {
       return res.status(400).json({
         success: false,
@@ -268,13 +332,14 @@ export const deleteSeance = async (req, res) => {
       });
     }
 
-    await Seance.findByIdAndDelete(req.params.id);
+    await seance.destroy();
 
     res.status(200).json({
       success: true,
       message: 'Séance supprimée avec succès'
     });
   } catch (error) {
+    console.error('Erreur deleteSeance:', error);
     res.status(500).json({
       success: false,
       message: 'Erreur lors de la suppression de la séance',

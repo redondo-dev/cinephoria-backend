@@ -3,6 +3,12 @@ import { DataTypes } from "sequelize";
 import sequelize from "../config/database.js";
 
 const Salle = sequelize.define("Salle", {
+
+   id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true, 
+      primaryKey: true,
+    },
  
   nom_salle: {
     type: DataTypes.STRING(100),
@@ -31,7 +37,7 @@ const Salle = sequelize.define("Salle", {
 
   cinema_id: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true,
     references: {
       model: 'cinema', // Nom de la table référencée
       key: 'id'

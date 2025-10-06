@@ -51,4 +51,11 @@ User.hasMany(Avis, { foreignKey: 'utilisateur_id', as: 'avisEcrits' });
 Avis.belongsTo(User, { foreignKey: 'motif_refus', as: 'validePar', constraints: false });
 User.hasMany(Avis, { foreignKey: 'motif_refus', as: 'avisValides', constraints: false });
 
+
+// Association Cinema -> Salle (1 cinéma a plusieurs salles)
+Cinema.hasMany(Salle, { foreignKey: "cinema_id" });
+Salle.belongsTo(Cinema, { foreignKey: "cinema_id" });
+
+
+
 export { sequelize, Film, Seance, Salle, Cinema, Genre,User,Role,Reservation,Avis };

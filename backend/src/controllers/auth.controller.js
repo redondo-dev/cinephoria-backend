@@ -23,7 +23,7 @@ export const login = async (req, res) => {
     if (!user) {
       return res.status(401).json({ message: "Utilisateur non trouvé" });
     }
-
+  
     console.log("Role :", user.roleDetails?.nom_role);
 
     // Vérification du mot de passe

@@ -1,10 +1,13 @@
 // controllers/employee/salle.controller.js
 import Salle from '../../models/salle.model.js';
+import Seance from '../../models/seance.model.js';
 
+// ======================================================
 // Récupérer toutes les salles
+// ======================================================
 export const getAllSalles = async (req, res) => {
   try {
-    const salles = await Salle.find().sort({ numero: 1 });
+    const salles = await Salle.findAll(); // 
     res.status(200).json({
       success: true,
       count: salles.length,
@@ -19,11 +22,13 @@ export const getAllSalles = async (req, res) => {
   }
 };
 
+// ======================================================
 // Récupérer une salle par ID
+// ======================================================
 export const getSalleById = async (req, res) => {
   try {
-    const salle = await Salle.findById(req.params.id);
-    
+    const salle = await Salle.findByPk(req.params.id);
+
     if (!salle) {
       return res.status(404).json({
         success: false,
@@ -44,31 +49,33 @@ export const getSalleById = async (req, res) => {
   }
 };
 
+// ======================================================
 // Créer une nouvelle salle
+// ======================================================
 export const createSalle = async (req, res) => {
   try {
-    const { numero, nombrePlaces, qualiteProjection } = req.body;
+    const { nom_salle, capacite,cinema_id, qualite_projection } = req.body;
 
     // Validation des champs requis
-    if (!numero || !nombrePlaces || !qualiteProjection) {
+    if (!nom_salle || !capacite || !qualite_projection|| !cinema_id) {
       return res.status(400).json({
         success: false,
-        message: 'Veuillez fournir tous les champs requis (numéro, nombre de places, qualité de projection)'
+        message: 'Veuillez fournir tous les champs requis (nom_salle, capacite,cinema_id qualité de projection)'
       });
     }
 
-    // Vérifier si le numéro de salle existe déjà
-    const salleExistante = await Salle.findOne({ numero });
+    // Vérifier si une salle avec le même nom existe déjà
+    const salleExistante = await Salle.findOne({ where: { nom_salle } });
     if (salleExistante) {
       return res.status(400).json({
         success: false,
-        message: 'Une salle avec ce numéro existe déjà'
+        message: 'Une salle avec ce nom existe déjà'
       });
     }
 
-    // Validation de la qualité de projection
+    //  Validation de la qualité de projection
     const qualitesValides = ['2D', '3D', 'IMAX', '4DX', 'Dolby Cinema'];
-    if (!qualitesValides.includes(qualiteProjection)) {
+    if (!qualitesValides.includes(qualite_projection)) {
       return res.status(400).json({
         success: false,
         message: `Qualité de projection invalide. Valeurs acceptées : ${qualitesValides.join(', ')}`
@@ -76,24 +83,25 @@ export const createSalle = async (req, res) => {
     }
 
     // Validation du nombre de places
-    if (nombrePlaces < 1 || nombrePlaces > 500) {
+    if (capacite < 1 || capacite > 500) {
       return res.status(400).json({
         success: false,
         message: 'Le nombre de places doit être entre 1 et 500'
       });
     }
 
-    const salle = await Salle.create({
-      numero,
-      nombrePlaces,
-      qualiteProjection,
-      createdBy: req.user.id
+    // Création de la salle
+    
+    const newSalle = await Salle.create({
+      nom_salle,
+      capacite,
+      cinema_id,
+      qualite_projection,
     });
-
     res.status(201).json({
       success: true,
       message: 'Salle créée avec succès',
-      data: salle
+      data: newSalle
     });
   } catch (error) {
     res.status(500).json({
@@ -104,10 +112,12 @@ export const createSalle = async (req, res) => {
   }
 };
 
+// ======================================================
 // Mettre à jour une salle
+// ======================================================
 export const updateSalle = async (req, res) => {
   try {
-    const salle = await Salle.findById(req.params.id);
+    const salle = await Salle.findByPk(req.params.id);
 
     if (!salle) {
       return res.status(404).json({
@@ -116,27 +126,27 @@ export const updateSalle = async (req, res) => {
       });
     }
 
-    // Si le numéro est modifié, vérifier qu'il n'existe pas déjà
-    if (req.body.numero && req.body.numero !== salle.numero) {
-      const salleExistante = await Salle.findOne({ numero: req.body.numero });
+    // Si le nom de salle est modifié, vérifier qu’il n’existe pas déjà
+    if (req.body.nom_salle && req.body.nom_salle !== salle.nom_salle) {
+      const salleExistante = await Salle.findOne({ where: { nom_salle: req.body.nom_salle } });
       if (salleExistante) {
         return res.status(400).json({
           success: false,
-          message: 'Une salle avec ce numéro existe déjà'
+          message: 'Une salle avec ce nom existe déjà'
         });
       }
     }
 
-    const updatedSalle = await Salle.findByIdAndUpdate(
-      req.params.id,
-      { ...req.body, updatedBy: req.user.id },
-      { new: true, runValidators: true }
-    );
+    // ✅ Mise à jour
+    await salle.update({
+      ...req.body,
+      updatedBy: req.user?.id || null
+    });
 
     res.status(200).json({
       success: true,
       message: 'Salle mise à jour avec succès',
-      data: updatedSalle
+      data: salle
     });
   } catch (error) {
     res.status(500).json({
@@ -147,10 +157,12 @@ export const updateSalle = async (req, res) => {
   }
 };
 
+// ======================================================
 // Supprimer une salle
+// ======================================================
 export const deleteSalle = async (req, res) => {
   try {
-    const salle = await Salle.findById(req.params.id);
+    const salle = await Salle.findByPk(req.params.id);
 
     if (!salle) {
       return res.status(404).json({
@@ -159,9 +171,8 @@ export const deleteSalle = async (req, res) => {
       });
     }
 
-    // Vérifier s'il y a des séances liées à cette salle
-    const Seance = await import('../../models/seance.model.js');
-    const seancesCount = await Seance.default.countDocuments({ salle: req.params.id });
+    // Vérifier s’il existe des séances associées à cette salle
+    const seancesCount = await Seance.count({ where: { salle_id: req.params.id } });
 
     if (seancesCount > 0) {
       return res.status(400).json({
@@ -170,7 +181,7 @@ export const deleteSalle = async (req, res) => {
       });
     }
 
-    await Salle.findByIdAndDelete(req.params.id);
+    await salle.destroy();
 
     res.status(200).json({
       success: true,
