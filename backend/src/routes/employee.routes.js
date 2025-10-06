@@ -1,13 +1,14 @@
 // routes/employee.js
 import { Router } from 'express';
 const router = Router();
-import { authMiddleware, isEmployee } from '../middleware/auth';
+import  authMiddleware  from '../middleware/auth.middleware.js';
+import {isEmployee}  from '../middleware/employee.middelware.js';
 
-import { getAllFilms, createFilm, getFilmById, updateFilm, deleteFilm } from '../controllers/employee/film.controller';
-import { getAllSalles, createSalle, getSalleById, updateSalle, deleteSalle } from '../controllers/employee/salle.controlle';
-import { getAllSeances, createSeance, getSeanceById, updateSeance, deleteSeance } from '../controllers/employee/seance.controller';
-import { getAllAvis, getAvisEnAttente, validerAvis, deleteAvis } from '../controllers/employee/avis.controller';
-import { getDashboard } from '../controllers/employee/intranet.controller';
+import { getAllFilms, createFilm, getFilmById, updateFilm, deleteFilm } from '../controllers/employee/film.controller.js';
+import { getAllSalles, createSalle, getSalleById, updateSalle, deleteSalle } from '../controllers/employee/salle.controller.js';
+import { getAllSeances, createSeance, getSeanceById, updateSeance, deleteSeance } from '../controllers/employee/seance.controller.js';
+import { getAllAvis, getAvisEnAttente, validerAvis, deleteAvis } from '../controllers/employee/avis.controller.js';
+import { getDashboard } from '../controllers/employee/intranet.controller.js';
 
 // Appliquer les middlewares d'authentification
 router.use(authMiddleware, isEmployee);
