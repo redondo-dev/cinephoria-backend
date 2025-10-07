@@ -6,7 +6,7 @@ import protectedRoutes from "../src/routes/auth/protected.routes.js";
 import adminRoutes from "../src/routes/admin.routes.js";
 import reservationRoutes from "../src/routes/reservation.routes.js";
 import employeeRoutes from "../src/routes/employee.routes.js";
-
+import userRoutes from "../src/routes/user.routes.js";
 
 const app = express();
 app.use(cors());
@@ -23,6 +23,7 @@ app.use("/api/reservations", reservationRoutes);
 // Routes Admin protégées
 app.use("/admin", adminRoutes);
 app.use('/employee',employeeRoutes);
+app.use('/user',userRoutes);
 
 export default app;
 
