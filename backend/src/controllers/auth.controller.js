@@ -41,7 +41,7 @@ export const login = async (req, res) => {
         role: user.roleDetails?.nom_role,
       },
       JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "5h" }
     );
 
     // Cookie HttpOnly

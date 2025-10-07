@@ -74,7 +74,7 @@ const Avis = sequelize.define('Avis', {
 }, 
 {
   tableName: 'avis',
-  timestamps: true,
+  timestamps: false,
   createdAt: 'created_at',
   updatedAt: 'updated_at',
   indexes: [
