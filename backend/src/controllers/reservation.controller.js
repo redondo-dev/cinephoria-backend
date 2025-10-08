@@ -1,20 +1,10 @@
 
 // src/controllers/reservation.controller.js
-<<<<<<< HEAD
-
-import { Reservation, Seance, Film } from "../models/index.js"; // Sequelize
-import MongoReservation from "./mongo/mongo.reservation.model.js";
-
-export const createReservation = async (req, res) => {
-  try {
-    // On prend utilisateur_id du body 
-=======
 import Reservation from "../models/reservation.model.js";
 
 export const createReservation = async (req, res) => {
   try {
     // On prend utilisateur_id du body (si fourni) sinon null
->>>>>>> origin/dev
     const { utilisateur_id = null, seance_id, nb_places, prix_unitaire, date_expiration } = req.body;
 
     // Vérification des champs obligatoires
@@ -33,47 +23,9 @@ export const createReservation = async (req, res) => {
       date_expiration: date_expiration || null,
     });
 
-<<<<<<< HEAD
-
-//  Récupérer le titre du film via associations Sequelize
-    const seance = await Seance.findOne({
-      where: { id: seance_id },
-      include: [
-        {
-          model: Film,
-          as: "film",
-          attributes: ["id", "titre"] // récupère juste l'id et le titre
-        }
-      ]
-    });
-// 🔹 Vérification des données récupérées
-console.log("Seance récupérée :", seance);
-console.log("Film associé :", seance?.film);
-    if (seance && seance.film) {
-      // Création de la copie dans MongoDB pour le dashboard US8
-      console.log("Création Mongo :", {
-    film_id: seance.film.id,
-    titre: seance.film.titre,
-    nb_places
-  });
-      const mongoRes=await MongoReservation.create({
-        film_id: seance.film.id,
-        titre: seance.film.titre,
-        nb_places,
-        date_reservation: new Date()
-      });
-      console.log("Réservation copiée dans MongoDB :", mongoRes);
-    }
-
-
-    return res.status(201).json({message:"Reservation crée",reservation});
-  } catch (error) {
-    console.error("Erreur lors de la création  de la Reservation:", error);
-=======
     return res.status(201).json(reservation);
   } catch (error) {
     console.error("Erreur lors de la création :", error);
->>>>>>> origin/dev
     return res.status(500).json({
       message: "Erreur serveur",
       error: error.message,
@@ -135,8 +87,4 @@ export const deleteReservation = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Erreur serveur" });
   }
-<<<<<<< HEAD
 };
-=======
-};
->>>>>>> origin/dev

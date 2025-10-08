@@ -35,8 +35,17 @@ const Seance = sequelize.define("Seance", {
     },
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE'
-  }
-
+  },
+  dateHeureDebut: {
+  type: DataTypes.DATE,
+  allowNull: false,
+  field: 'date_heure_debut' 
+},
+dateHeureFin: {
+  type: DataTypes.DATE,
+  allowNull: false,
+  field: 'date_heure_fin'
+}
 }, {
   tableName: "seance",
   timestamps: false,

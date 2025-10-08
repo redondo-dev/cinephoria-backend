@@ -1,12 +1,9 @@
 import express from 'express';
 import protectedRoutes from "../src/routes/auth/protected.routes.js";
-import reservationRoutes from './routes/reservation.route.js';
-import cors from 'cors';
-import cookieParser from "cookie-parser";
-import dotenv from "dotenv";
-import authRoutes from './routes/auth.routes.js';
+import adminRoutes from "../src/routes/admin.routes.js";
+import reservationRoutes from "../src/routes/reservation.routes.js";
+import employeeRoutes from "../src/routes/employee.routes.js";
 
-dotenv.config();
 
 const app = express();
 app.use(cors());
@@ -28,11 +25,10 @@ app.use(cookieParser()); // pour lire les cookies
 app.use('/api/auth/', authRoutes);
 app.use("/api", protectedRoutes);
 
-
-// Routes
-
-app.get("/", (req, res) => res.send("Bienvenue sur Cinephoria API"));
-
+app.use("/api/reservations", reservationRoutes);
+// Routes Admin protégées
+app.use("/admin", adminRoutes);
+app.use('/employee',employeeRoutes);
 
 export default app;
 

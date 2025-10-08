@@ -50,8 +50,4 @@ const Reservation = sequelize.define(
   }
 );
 
-<<<<<<< HEAD
 export default Reservation;
-=======
-export default Reservation;
->>>>>>> origin/dev

@@ -34,7 +34,11 @@ const User = sequelize.define("User", {
     },
   role_id: { // <--= foreign key  vers la table role
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
+    references: {
+      model: "role",
+      key: "id",
+    },
   },
    isConfirmed: {
       type: DataTypes.BOOLEAN,
