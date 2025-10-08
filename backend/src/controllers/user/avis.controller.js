@@ -35,7 +35,7 @@ export const createAvis = async (req, res) => {
         {
           model: Seance,
           as: "seance",
-          where: { film_id, date_heure: { [Op.lt]: maintenant } },
+          where: { film_id, date_seance: { [Op.lt]: maintenant } },
           attributes: [],
         },
       ],
@@ -61,7 +61,7 @@ export const createAvis = async (req, res) => {
       utilisateur_id: userId,
       film_id,
       note,
-      commentaire: commentaire || null,
+      contenu: commentaire || null,
       date_avis: new Date(),
       statut: "en_attente",
     });
@@ -90,7 +90,7 @@ export const getMesAvis = async (req, res) => {
         {
           model: Film,
           as: "film",
-          attributes: ["id", "titre", "affiche", "date_sortie", "duree"],
+          attributes: ["id", "titre", "affiche", "duree"],
         },
       ],
       order: [["date_avis", "DESC"]],
@@ -102,7 +102,7 @@ export const getMesAvis = async (req, res) => {
       data: avis.map((a) => ({
         id: a.id,
         note: a.note,
-        commentaire: a.commentaire,
+        contenu: a.contenu,
         date_avis: a.date_avis,
         statut: a.statut,
         film: a.film,
@@ -130,7 +130,7 @@ export const getFilmsANoter = async (req, res) => {
         {
           model: Seance,
           as: "seance",
-          where: { date_heure: { [Op.lt]: maintenant } },
+          where: { date_seance: { [Op.lt]: maintenant } },
           attributes: ["film_id"],
         },
       ],
@@ -159,7 +159,7 @@ export const getFilmsANoter = async (req, res) => {
     // Récupérer les détails des films à noter
     const filmsANoter = await Film.findAll({
       where: { id: { [Op.in]: filmsANoterIds } },
-      attributes: ["id", "titre", "affiche", "date_sortie", "duree"],
+      attributes: ["id", "titre", "affiche", "duree"],
     });
 
     res.status(200).json({

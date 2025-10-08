@@ -36,8 +36,8 @@ Role.hasMany(User, { foreignKey: "role_id", as: "users" });
 
 
 // Association Réservation -> seance (une réservation concerne une séance)
-Reservation.belongsTo(Seance, { foreignKey: "seance_id", onDelete: "CASCADE" });
-Seance.hasMany(Reservation, { foreignKey: "seance_id" });
+Reservation.belongsTo(Seance, { foreignKey: "seance_id", as: 'seance', onDelete: "CASCADE" });
+Seance.hasMany(Reservation, { foreignKey: "seance_id" ,as: "reservations",});
 
 // // Avis -> Film (un avis concerne un film)
 Avis.belongsTo(Film, { foreignKey: 'film_id', as: 'film', onDelete: 'CASCADE' });

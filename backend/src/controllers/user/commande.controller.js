@@ -18,17 +18,17 @@ export const getMesCommandes = async (req, res) => {
         {
           model: Seance,
           as: 'seance',
-          attributes: ['id', 'date_heure'],
+          attributes: ['id', 'date_seance','date_heure_debut', 'date_heure_fin'],
           include: [
             {
               model: Film,
               as: 'film',
-              attributes: ['id', 'titre', 'affiche', 'date_sortie', 'duree'],
+              attributes: ['id', 'titre', 'affiche', 'duree'],
             },
             {
               model: Salle,
               as: 'salle',
-              attributes: ['id', 'nom'],
+              attributes: ['id', 'nom_salle'],
               include: [
                 {
                   model: Cinema,
@@ -68,17 +68,17 @@ export const getCommandeById = async (req, res) => {
         {
           model: Seance,
           as: 'seance',
-          attributes: ['id', 'date_heure'],
+          attributes: ['id', 'date_seance','date_heure_debut', 'date_heure_fin'],
           include: [
             {
               model: Film,
               as: 'film',
-              attributes: ['id', 'titre', 'affiche', 'date_sortie', 'duree'],
+              attributes: ['id', 'titre', 'affiche', 'duree'],
             },
             {
               model: Salle,
               as: 'salle',
-              attributes: ['id', 'nom'],
+              attributes: ['id', 'nom_salle'],
               include: [
                 {
                   model: Cinema,
