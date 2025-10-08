@@ -30,9 +30,9 @@ Salle.belongsTo(Cinema, { foreignKey: 'cinema_id', as: 'cinema' });
 Cinema.hasMany(Salle, { foreignKey: 'cinema_id', as: 'salles' });
 
 
-// Association
-Reservation.belongsTo(Seance, { foreignKey: "seance_id", onDelete: "CASCADE" });
-Seance.hasMany(Reservation, { foreignKey: "seance_id" });
+// Association Réservation -> seance (une réservation concerne une séance)
+Reservation.belongsTo(Seance, { foreignKey: "seance_id", as: 'seance', onDelete: "CASCADE" });
+Seance.hasMany(Reservation, { foreignKey: "seance_id" ,as: "reservations",});
 
 // // Avis -> Film (un avis concerne un film)
 Avis.belongsTo(Film, { foreignKey: 'film_id', as: 'film', onDelete: 'CASCADE' });
@@ -51,22 +51,6 @@ User.hasMany(Avis, { foreignKey: 'motif_refus', as: 'avisValides', constraints: 
 Cinema.hasMany(Salle, { foreignKey: "cinema_id" });
 Salle.belongsTo(Cinema, { foreignKey: "cinema_id" });
 
-// // Avis -> Film (un avis concerne un film)
-Avis.belongsTo(Film, { foreignKey: 'film_id', as: 'film', onDelete: 'CASCADE' });
-Film.hasMany(Avis, { foreignKey: 'film_id', as: 'avis' });
-
-//Avis -> Utilisateur (validé par un employé)
-Avis.belongsTo(User, { foreignKey: 'utilisateur_id', as: 'utilisateur', onDelete: 'CASCADE' });
-User.hasMany(Avis, { foreignKey: 'utilisateur_id', as: 'avisEcrits' });
-
-// Avis → Utilisateur (validateur via motif_refus)
-Avis.belongsTo(User, { foreignKey: 'motif_refus', as: 'validePar', constraints: false });
-User.hasMany(Avis, { foreignKey: 'motif_refus', as: 'avisValides', constraints: false });
-
-
-// Association Cinema -> Salle (1 cinéma a plusieurs salles)
-Cinema.hasMany(Salle, { foreignKey: "cinema_id" });
-Salle.belongsTo(Cinema, { foreignKey: "cinema_id" });
 
 
 
