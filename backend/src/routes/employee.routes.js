@@ -2,7 +2,7 @@
 import { Router } from 'express';
 const router = Router();
 import  authMiddleware  from '../middleware/auth.middleware.js';
-import {isEmployee}  from '../middleware/employee.middelware.js';
+import {isEmployee}  from '../middleware/employee.middleware.js';
 
 import { getAllFilms, createFilm, getFilmById, updateFilm, deleteFilm } from '../controllers/employee/film.controller.js';
 import { getAllSalles, createSalle, getSalleById, updateSalle, deleteSalle } from '../controllers/employee/salle.controller.js';

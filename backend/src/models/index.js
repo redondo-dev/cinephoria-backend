@@ -35,7 +35,7 @@ User.belongsTo(Role, { foreignKey: "role_id", as: "roleDetails" });
 Role.hasMany(User, { foreignKey: "role_id", as: "users" });
 
 
-// Association
+// Association Réservation -> seance (une réservation concerne une séance)
 Reservation.belongsTo(Seance, { foreignKey: "seance_id", onDelete: "CASCADE" });
 Seance.hasMany(Reservation, { foreignKey: "seance_id" });
 
@@ -55,6 +55,7 @@ User.hasMany(Avis, { foreignKey: 'motif_refus', as: 'avisValides', constraints: 
 // Association Cinema -> Salle (1 cinéma a plusieurs salles)
 Cinema.hasMany(Salle, { foreignKey: "cinema_id" });
 Salle.belongsTo(Cinema, { foreignKey: "cinema_id" });
+
 
 
 

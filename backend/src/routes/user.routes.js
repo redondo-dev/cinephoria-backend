@@ -2,7 +2,6 @@
 import { Router } from 'express';
 const router = Router();
 import isClient from '../middleware/user.middleware.js';
-
 import { getMesCommandes, getCommandeById } from '../controllers/user/commande.controller.js';
 import { createAvis, getMesAvis, getFilmsANoter } from '../controllers/user/avis.controller.js';
 
