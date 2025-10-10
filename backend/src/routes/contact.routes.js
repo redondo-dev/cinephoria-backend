@@ -1,7 +1,7 @@
 // backend/src/routes/contact.routes.js
 import express from "express";
-import { postContact } from "../controllers/contact.controller.js";
-import { validateContact } from "../middlewares/contact.middleware.js";
+import { postContact } from "../controllers/contact/contact.controller.js";
+import { validateContact } from "../middleware/contact.middleware.js";
 
 const router = express.Router();
 
