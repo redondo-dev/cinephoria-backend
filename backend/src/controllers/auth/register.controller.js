@@ -3,6 +3,7 @@ import { validatePassword } from "../../utils/validatePassword.js";
 import { validateEmail } from "../../utils/validateEmail.js";
 import * as jwt from "jsonwebtoken";
 import { sendTemporaryPassword } from "../../utils/sendTemporaryPassword.js";
+import { setTemporaryPasswordForUser } from "../../utils/setTemporaryPasswordForUser.js";
 import crypto from "crypto";
 import * as bcrypt from "bcrypt";
 
@@ -127,4 +128,8 @@ export const registerWithTempPassword = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: "Erreur serveur", error: err.message });
   }
+
+  
 };
+
+
