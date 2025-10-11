@@ -1,8 +1,8 @@
 // routes/employee.js
 import { Router } from 'express';
 const router = Router();
-import  authMiddleware  from '../middleware/auth.middleware.js';
-import {isEmployee}  from '../middleware/employee.middleware.js';
+import { verifyToken, authorizeRoles } from '../middleware/auth.middleware.js';
+
 
 import { getAllFilms, createFilm, getFilmById, updateFilm, deleteFilm } from '../controllers/employee/film.controller.js';
 import { getAllSalles, createSalle, getSalleById, updateSalle, deleteSalle } from '../controllers/employee/salle.controller.js';
@@ -11,7 +11,8 @@ import { getAllAvis, getAvisEnAttente, validerAvis, deleteAvis } from '../contro
 import { getDashboard } from '../controllers/employee/intranet.controller.js';
 
 // Appliquer les middlewares d'authentification
-router.use(authMiddleware, isEmployee);
+router.use(verifyToken);
+router.use(authorizeRoles('employee', 'admin'));
 
 // Routes Films
 router.get('/films', getAllFilms);

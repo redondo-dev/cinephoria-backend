@@ -1,6 +1,8 @@
 // src/routes/auth.routes.js
 import express from "express";
-import { login, logout,register,registerWithTempPassword,confirmEmail,forgotPassword,changeTempPassword} from "../../controllers/auth.controller.js";
+import { login, logout,forgotPassword,changeTempPassword,forgotPasswordVisitor} from "../../controllers/auth/auth.controller.js";
+import { confirmEmail } from "../../controllers/auth/confirm.controller.js";
+import { register,registerWithTempPassword } from "../../controllers/auth/register.controller.js";
 
 const router = express.Router();
 

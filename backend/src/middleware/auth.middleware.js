@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 
-export const verifyToken = (req, res, next) => {
+ export const verifyToken = (req, res, next) => {
   const token = req.cookies.token || req.headers["authorization"]?.split(" ")[1];
   if (!token) return res.status(401).json({ message: "Accès refusé" });
 
@@ -13,7 +13,7 @@ export const verifyToken = (req, res, next) => {
   }
 };
 
-export const authorizeRoles = (...roles) => {
+ export const authorizeRoles = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({ message: "Vous n'avez pas les permissions nécessaires" });

@@ -2,7 +2,7 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/user.model.js';
 
-const isClient = async (req, res, next) => {
+ const isClient = async (req, res, next) => {
   try {
     // Récupérer le token depuis le header Authorization
     const authHeader = req.headers.authorization;
