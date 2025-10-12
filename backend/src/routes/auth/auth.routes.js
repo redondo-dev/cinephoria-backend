@@ -3,6 +3,7 @@ import express from "express";
 import { login, logout,forgotPassword,changeTempPassword,forgotPasswordVisitor} from "../../controllers/auth/auth.controller.js";
 import { confirmEmail } from "../../controllers/auth/confirm.controller.js";
 import { register,registerWithTempPassword } from "../../controllers/auth/register.controller.js";
+import { resetPassword } from "../../controllers/auth/auth.controller.js";
 
 const router = express.Router();
 
@@ -26,6 +27,7 @@ router.post ("/change-temp-password",changeTempPassword);
 router.post("/login", login);
 router.post("/logout", logout);
 router.post('/forgot-password-visiteur', forgotPasswordVisitor);
+router.post("/reset-password", resetPassword);
 
 
 export default router;

@@ -2,6 +2,8 @@ import User from "../../models/user.model.js";
 import Role from "../../models/role.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import crypto from 'crypto'; 
+
 import { sendTemporaryPassword } from "../../utils/sendTemporaryPassword.js";
 import { setTemporaryPasswordForUser } from "../../utils/setTemporaryPasswordForUser.js";
 import { validatePassword } from "../../utils/validatePassword.js";
@@ -170,5 +172,36 @@ export const forgotPasswordVisitor = async (req, res) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { email, tempPassword, newPassword } = req.body;
+
+    if (!email || !tempPassword || !newPassword) {
+      return res.status(400).json({ message: "Email, mot de passe temporaire et nouveau mot de passe requis" });
+    }
+
+    const user = await User.findOne({ where: { email } });
+    if (!user) return res.status(404).json({ message: "Utilisateur non trouvé" });
+
+    // Vérifier le mot de passe temporaire
+    const match = await bcrypt.compare(tempPassword, user.password);
+    if (!match) {
+      return res.status(401).json({ message: "Mot de passe temporaire invalide" });
+    }
+
+    // Hacher le nouveau mot de passe
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    user.mustChangePassword = false; 
+    await user.save();
+
+    res.status(200).json({ message: "Mot de passe réinitialisé avec succès !" });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erreur serveur", error: err.message });
   }
 };

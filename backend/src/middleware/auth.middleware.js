@@ -12,15 +12,37 @@ import jwt from "jsonwebtoken";
     return res.status(403).json({ message: "Token invalide" });
   }
 };
-
- export const authorizeRoles = (...roles) => {
+export const authorizeRoles = (...allowedRoles) => {
   return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ message: "Vous n'avez pas les permissions nécessaires" });
+    try {
+
+ if (req.user.role !== 'employe' && req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Accès refusé. Vous devez être employé pour accéder à cette ressource.'
+      });
     }
-    next();
+
+
+
+      // if (!req.user || !allowedRoles.includes(req.user.role)) {
+      //   return res.status(403).json({
+      //     success: false,
+      //     message: 'Accès refusé. Vous n\'avez pas les permissions nécessaires.'
+      //   });
+      // }
+
+      next();
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Erreur lors de la vérification des permissions.',
+        error: error.message
+      });
+    }
   };
 };
+
 
 export const checkMustChangePassword = (req, res, next) => {
   if (req.user.mustChangePassword) {

@@ -50,11 +50,11 @@ const User = sequelize.define("User", {
       defaultValue: false,
         field: 'mustchangepassword'
     },
-      tempPasswordExpiresAt: {
-        type: DataTypes.DATE,
-        allowNull: true,
-        field: 'temp_password_expires_at'
-}
+//       tempPasswordExpiresAt: {
+//         type: DataTypes.DATE,
+//         allowNull: true,
+//         field: 'temp_password_expires_at'
+// }
   }
 , {
   freezeTableName: true,
