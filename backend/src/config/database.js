@@ -17,7 +17,21 @@ const sequelize = new Sequelize(
     host: process.env.DB_HOST,
     port: process.env.DB_PORT || 5432,
     dialect: 'postgres',
-    logging: console.log,        
+    logging: false,        
+    // Ajout pour SSL
+  dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false, // nécessaire pour Render
+      },
+    },
   }
 );
+
+// Test de connexion (optionnel mais pratique)
+sequelize.authenticate()
+  .then(() => console.log('Connexion à la DB réussie !'))
+  .catch(err => console.error('Erreur de connexion :', err));
+
+  
 export default sequelize;
