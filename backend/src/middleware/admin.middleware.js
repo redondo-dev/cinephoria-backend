@@ -1,5 +1,5 @@
 // src/middleware/admin.middleware.js
-export function isAdmin(req, res, next) {
+export const isAdmin = (req, res, next) => {
 
   console.log("Role détecté dans le token :", req.user?.role_id);
   try {
