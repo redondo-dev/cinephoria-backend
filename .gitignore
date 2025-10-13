@@ -12,6 +12,11 @@ yarn-debug.log*
 yarn-error.log*
 
 # Environnement
+.env
+.env.*
+*.env
+backend/.env
+backend/.env.*
 /backend/.env
 /backend/.env.test
 /backend/.env.local
@@ -22,6 +27,14 @@ yarn-error.log*
 # Build / dist
 /backend/dist/
 /backend/build/
+# Fichiers de backup
+*.sql
+*.dump
+backup*.sql
+backup*.dump
+
+# Base de données locale
+
 
 # IDEs / OS
 *.swp

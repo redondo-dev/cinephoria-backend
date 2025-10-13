@@ -20,15 +20,15 @@ const sequelize = new Sequelize(
     logging: false,        
     // Ajout pour SSL
   dialectOptions: {
-      ssl: {
+      ssl: process.env.NODE_ENV === 'production' ? {
         require: true,
         rejectUnauthorized: false, // nécessaire pour Render
-      },
+      }:false
     },
   }
 );
 
-// Test de connexion (optionnel mais pratique)
+// Test de connexion
 sequelize.authenticate()
   .then(() => console.log('Connexion à la DB réussie !'))
   .catch(err => console.error('Erreur de connexion :', err));

@@ -1,4 +1,6 @@
+import './config/env.js'; // Charger les variables d'environnement en premier
 import 'dotenv/config';
+
 import app from './app.js';
 import { sequelize, Film, Seance, Salle, Cinema } from './models/index.js';
 
