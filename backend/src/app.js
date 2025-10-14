@@ -3,6 +3,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import setupSwagger from "./config/swagger.config.js";
 
 import authRoutes from "../src/routes/auth/auth.routes.js";
 import protectedRoutes from "../src/routes/auth/protected.routes.js";
@@ -41,5 +42,10 @@ app.use('/api/reservations', reservationRoutes);
 app.use('/admin', adminRoutes);
 app.use('/employee', employeeRoutes);
 app.use('/user', userRoutes);
+
+// Documentation Swagger
+
+
+setupSwagger(app);
 
 export default app;

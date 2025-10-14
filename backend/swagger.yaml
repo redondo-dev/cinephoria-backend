@@ -1,0 +1,1172 @@
+openapi: 3.0.3
+info:
+  title: Cinéphoria API
+  version: 1.0.0
+  description: Documentation de l’API REST Cinéphoria (Node.js, Express, PostgreSQL)
+  contact:
+    name: Redondo
+    email: contact@cinephoria.fr
+servers:
+  - url: http://localhost:3000
+    description: Serveur local
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []
+paths:
+  /admin/dashboard:
+    get:
+      summary: Accède au tableau de bord de l’administrateur
+      tags:
+        - Administration
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Bienvenue sur le tableau de bord
+        "401":
+          description: Accès non autorisé
+  /admin/dashboard/reservations:
+    get:
+      summary: Statistiques des réservations (MongoDB)
+      tags:
+        - Administration
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Données de réservations sur 7 jours
+  /admin/employees:
+    post:
+      summary: Crée un nouvel employé
+      tags:
+        - Administration
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: employe@test.com
+                role:
+                  type: string
+                  example: employe
+      responses:
+        "201":
+          description: Employé créé
+        "400":
+          description: Erreur de validation
+  "/admin/employees/{id}/reset-password":
+    patch:
+      summary: Réinitialise le mot de passe d’un employé
+      tags:
+        - Administration
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: ID de l’employé
+      responses:
+        "200":
+          description: Mot de passe réinitialisé
+  /admin/films:
+    post:
+      summary: Ajoute un film
+      tags:
+        - Administration
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Film ajouté
+  "/admin/films/{id}":
+    patch:
+      summary: Met à jour un film
+      tags:
+        - Administration
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        "200":
+          description: Film mis à jour
+    delete:
+      summary: Supprime un film
+      tags:
+        - Administration
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        "200":
+          description: Film supprimé
+  /admin/seances:
+    post:
+      summary: Ajoute une séance
+      tags:
+        - Administration
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Séance ajoutée
+  "/admin/seances/{id}":
+    patch:
+      summary: Met à jour une séance
+      tags:
+        - Administration
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        "200":
+          description: Séance mise à jour
+    delete:
+      summary: Supprime une séance
+      tags:
+        - Administration
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        "200":
+          description: Séance supprimée
+  /admin/salles:
+    post:
+      summary: Ajoute une salle
+      tags:
+        - Administration
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Salle ajoutée
+  "/admin/salles/{id}":
+    patch:
+      summary: Met à jour une salle
+      tags:
+        - Administration
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Salle mise à jour
+    delete:
+      summary: Supprime une salle
+      tags:
+        - Administration
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Salle supprimée
+  /admin/cinemas:
+    post:
+      summary: Ajoute un cinéma
+      tags:
+        - Administration
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Cinéma ajouté
+  "/admin/cinemas/{id}":
+    patch:
+      summary: Met à jour un cinéma
+      tags:
+        - Administration
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        "200":
+          description: Cinéma mis à jour
+    delete:
+      summary: Supprime un cinéma
+      tags:
+        - Administration
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Cinéma supprimé
+  /admin/users:
+    get:
+      summary: Liste tous les utilisateurs
+      tags:
+        - Administration
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Liste renvoyée
+  "/admin/users/{id}":
+    patch:
+      summary: Met à jour un utilisateur
+      tags:
+        - Administration
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        "200":
+          description: Utilisateur mis à jour
+    delete:
+      summary: Supprime un utilisateur
+      tags:
+        - Administration
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Utilisateur supprimé
+  /auth/register:
+    post:
+      summary: Inscription d’un utilisateur standard (visiteur)
+      tags:
+        - Authentification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: visiteur@test.com
+                password:
+                  type: string
+                  example: MonMotDePasse2025!
+      responses:
+        "201":
+          description: Utilisateur créé avec succès
+        "400":
+          description: Données invalides ou utilisateur existant
+  /auth/register-temp:
+    post:
+      summary: Création d’un compte avec mot de passe temporaire (admin ou employé)
+      tags:
+        - Authentification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - role
+              properties:
+                email:
+                  type: string
+                  example: employe@test.com
+                role:
+                  type: string
+                  enum:
+                    - admin
+                    - employe
+                  example: employe
+      responses:
+        "201":
+          description: Compte créé avec mot de passe temporaire envoyé par email
+  "/auth/confirm/{token}":
+    get:
+      summary: Confirme un compte utilisateur via un lien email
+      tags:
+        - Authentification
+      parameters:
+        - name: token
+          in: path
+          required: true
+          description: Jeton de confirmation reçu par email
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Compte confirmé avec succès
+        "400":
+          description: Token invalide ou expiré
+  /auth/forgot-password:
+    post:
+      summary: Envoi d’un mot de passe temporaire à l’utilisateur
+      tags:
+        - Authentification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  example: utilisateur@test.com
+      responses:
+        "200":
+          description: Email de réinitialisation envoyé
+        "404":
+          description: Utilisateur non trouvé
+  /auth/change-temp-password:
+    post:
+      summary: Change le mot de passe temporaire par un mot de passe définitif
+      tags:
+        - Authentification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - tempPassword
+                - newPassword
+              properties:
+                email:
+                  type: string
+                  example: employe@test.com
+                tempPassword:
+                  type: string
+                  example: 12345678
+                newPassword:
+                  type: string
+                  example: MonNouveauMotDePasse2025!
+      responses:
+        "200":
+          description: Mot de passe changé avec succès
+        "400":
+          description: Token ou mot de passe temporaire invalide
+  /auth/login:
+    post:
+      summary: Authentifie un utilisateur et retourne un token JWT
+      tags:
+        - Authentification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  example: visiteur@test.com
+                password:
+                  type: string
+                  example: MonMotDePasse2025!
+      responses:
+        "200":
+          description: Authentification réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      email:
+                        type: string
+        "401":
+          description: Identifiants invalides
+  /auth/logout:
+    post:
+      summary: Déconnexion de l’utilisateur
+      tags:
+        - Authentification
+      responses:
+        "200":
+          description: Déconnexion réussie
+  /auth/forgot-password-visiteur:
+    post:
+      summary: Envoi d’un mot de passe temporaire à un visiteur
+      tags:
+        - Authentification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  example: visiteur@test.com
+      responses:
+        "200":
+          description: Mot de passe temporaire envoyé au visiteur
+  /auth/reset-password:
+    post:
+      summary: Réinitialise le mot de passe d’un utilisateur
+      tags:
+        - Authentification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - newPassword
+              properties:
+                email:
+                  type: string
+                  example: visiteur3@test.com
+                password:
+                  type: string
+                  example: edbcb5647d6f
+                newPassword:
+                  type: string
+                  example: MonNouveauMotDePasse2025!
+      responses:
+        "200":
+          description: Mot de passe réinitialisé avec succès
+        "400":
+          description: Erreur dans les données envoyées
+  /contact/send:
+    post:
+      summary: Envoie un message depuis le formulaire de contact
+      tags:
+        - Contact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - nom
+                - email
+                - titre
+                - description
+              properties:
+                nom:
+                  type: string
+                  example: Jean Dupont
+                email:
+                  type: string
+                  format: email
+                  example: jean.dupont@example.com
+                titre:
+                  type: string
+                  example: Problème de réservation
+                description:
+                  type: string
+                  example: Je n’ai pas reçu le mail de confirmation pour ma réservation.
+      responses:
+        "200":
+          description: Message envoyé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Votre message a bien été envoyé
+        "400":
+          description: Données invalides
+  /employee/films:
+    get:
+      summary: Récupère tous les films
+      tags:
+        - Employés
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Liste de tous les films
+    post:
+      summary: Crée un nouveau film
+      tags:
+        - Employés
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                titre:
+                  type: string
+                  example: Inception
+                description:
+                  type: string
+                  example: Un film de science-fiction réalisé par Christopher Nolan.
+                duree:
+                  type: integer
+                  example: 148
+      responses:
+        "201":
+          description: Film créé avec succès
+  "/employee/films/{id}":
+    get:
+      summary: Récupère un film par son ID
+      tags:
+        - Employés
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID du film
+      responses:
+        "200":
+          description: Film trouvé
+    put:
+      summary: Met à jour un film
+      tags:
+        - Employés
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        "200":
+          description: Film mis à jour
+    delete:
+      summary: Supprime un film
+      tags:
+        - Employés
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        "200":
+          description: Film supprimé
+  /employee/salles:
+    get:
+      summary: Récupère toutes les salles
+      tags:
+        - Employés
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Liste des salles
+    post:
+      summary: Crée une nouvelle salle
+      tags:
+        - Employés
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Salle créée
+  "/employee/salles/{id}":
+    get:
+      summary: Récupère une salle par son ID
+      tags:
+        - Employés
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Salle trouvée
+    put:
+      summary: Met à jour une salle
+      tags:
+        - Employés
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Salle mise à jour
+    delete:
+      summary: Supprime une salle
+      tags:
+        - Employés
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Salle supprimée
+  /employee/seances:
+    get:
+      summary: Récupère toutes les séances
+      tags:
+        - Employés
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Liste des séances
+    post:
+      summary: Crée une nouvelle séance
+      tags:
+        - Employés
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Séance créée
+  "/employee/seances/{id}":
+    get:
+      summary: Récupère une séance par son ID
+      tags:
+        - Employés
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        "200":
+          description: Séance trouvée
+    put:
+      summary: Met à jour une séance
+      tags:
+        - Employés
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        "200":
+          description: Séance mise à jour
+    delete:
+      summary: Supprime une séance
+      tags:
+        - Employés
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        "200":
+          description: Séance supprimée
+  /employee/avis:
+    get:
+      summary: Récupère tous les avis
+      tags:
+        - Employés
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Liste de tous les avis
+  /employee/avis/en-attente:
+    get:
+      summary: Récupère les avis en attente de validation
+      tags:
+        - Employés
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Liste des avis en attente
+  "/employee/avis/{id}/valider":
+    patch:
+      summary: Valide un avis
+      tags:
+        - Employés
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        "200":
+          description: Avis validé
+  "/employee/avis/{id}":
+    delete:
+      summary: Supprime un avis
+      tags:
+        - Employés
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        "200":
+          description: Avis supprimé
+  /employee/dashboard:
+    get:
+      summary: Récupère les statistiques du tableau de bord employé
+      tags:
+        - Employés
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Statistiques du tableau de bord renvoyées
+  /reservations:
+    post:
+      summary: Crée une nouvelle réservation
+      tags:
+        - Réservations
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - utilisateurId
+                - seanceId
+                - nbPlaces
+              properties:
+                utilisateurId:
+                  type: integer
+                  example: 12
+                seanceId:
+                  type: integer
+                  example: 45
+                nbPlaces:
+                  type: integer
+                  example: 2
+                total:
+                  type: number
+                  example: 19.8
+      responses:
+        "201":
+          description: Réservation créée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 87
+                  statut:
+                    type: string
+                    example: en_attente
+        "400":
+          description: Données invalides
+        "401":
+          description: Non autorisé
+    get:
+      summary: Récupère toutes les réservations
+      tags:
+        - Réservations
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Liste de toutes les réservations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 5
+                    utilisateur:
+                      type: string
+                      example: jean.dupont@example.com
+                    film:
+                      type: string
+                      example: "Dune : Deuxième Partie"
+                    dateSeance:
+                      type: string
+                      example: 2025-10-18T20:00:00
+                    nbPlaces:
+                      type: integer
+                      example: 2
+                    total:
+                      type: number
+                      example: 19.8
+                    statut:
+                      type: string
+                      example: valide
+        "401":
+          description: Non autorisé
+  "/reservations/{id}":
+    get:
+      summary: Récupère une réservation spécifique
+      tags:
+        - Réservations
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID de la réservation
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Réservation trouvée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 42
+                  film:
+                    type: string
+                    example: Inception
+                  nbPlaces:
+                    type: integer
+                    example: 3
+                  total:
+                    type: number
+                    example: 27
+                  statut:
+                    type: string
+                    example: en_attente
+        "404":
+          description: Réservation non trouvée
+    put:
+      summary: Met à jour une réservation existante
+      tags:
+        - Réservations
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID de la réservation à modifier
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nbPlaces:
+                  type: integer
+                  example: 4
+                total:
+                  type: number
+                  example: 36
+                statut:
+                  type: string
+                  enum:
+                    - en_attente
+                    - valide
+                    - annulée
+                  example: valide
+      responses:
+        "200":
+          description: Réservation mise à jour avec succès
+        "400":
+          description: Données invalides
+        "404":
+          description: Réservation non trouvée
+    delete:
+      summary: Supprime une réservation
+      tags:
+        - Réservations
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID de la réservation à supprimer
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Réservation supprimée avec succès
+        "404":
+          description: Réservation non trouvée
+  /user/profile:
+    get:
+      summary: Récupère le profil de l'utilisateur connecté
+      tags:
+        - Utilisateur
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Profil utilisateur récupéré avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 42
+                  nom:
+                    type: string
+                    example: Jean Dupont
+                  email:
+                    type: string
+                    example: jean.dupont@example.com
+        "401":
+          description: Non autorisé - token manquant ou invalide
+  /user/commandes:
+    get:
+      summary: Liste des commandes de l'utilisateur connecté
+      tags:
+        - Utilisateur
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Liste des commandes renvoyée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 15
+                    date:
+                      type: string
+                      example: 2025-10-12
+                    montant:
+                      type: number
+                      example: 24.5
+        "401":
+          description: Non autorisé
+  "/user/commandes/{id}":
+    get:
+      summary: Récupère une commande spécifique par ID
+      tags:
+        - Utilisateur
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID de la commande
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Commande trouvée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 15
+                  montant:
+                    type: number
+                    example: 24.5
+                  date:
+                    type: string
+                    example: 2025-10-12
+        "404":
+          description: Commande non trouvée
+  /user/avis:
+    post:
+      summary: Crée un nouvel avis sur un film
+      tags:
+        - Utilisateur
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                filmId:
+                  type: integer
+                  example: 3
+                note:
+                  type: integer
+                  example: 5
+                commentaire:
+                  type: string
+                  example: Super film, effets visuels incroyables !
+      responses:
+        "201":
+          description: Avis créé avec succès
+        "400":
+          description: Données invalides
+        "401":
+          description: Non autorisé
+    get:
+      summary: Liste des avis rédigés par l'utilisateur
+      tags:
+        - Utilisateur
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Liste des avis de l'utilisateur
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 12
+                    film:
+                      type: string
+                      example: Inception
+                    note:
+                      type: integer
+                      example: 4
+                    commentaire:
+                      type: string
+                      example: Très bon scénario, un peu complexe.
+        "401":
+          description: Non autorisé
+  /user/films-a-noter:
+    get:
+      summary: Liste les films que l'utilisateur peut encore noter
+      tags:
+        - Utilisateur
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Liste des films disponibles à la notation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    filmId:
+                      type: integer
+                      example: 7
+                    titre:
+                      type: string
+                      example: "Dune : Deuxième partie"
+        "401":
+          description: Non autorisé
+tags:
+  - name: Administration
+    description: Gestion du tableau de bord et des opérations administratives
+      (employés, films, séances, salles, cinémas, utilisateurs)
+  - name: Authentification
+    description: Routes liées à la gestion des utilisateurs et à l'authentification
+  - name: Employés
+    description: Routes accessibles aux employés et administrateurs (films, salles,
+      séances, avis, dashboard)
+  - name: Réservations
+    description: Gestion des réservations de films
+  - name: Utilisateur
+    description: Opérations liées au compte utilisateur connecté
