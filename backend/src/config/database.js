@@ -1,11 +1,12 @@
 import { Sequelize } from 'sequelize';
-import dotenv from 'dotenv';
 
-dotenv.config(); 
 
 // Vérification des variables
 console.log('DB_USER:', process.env.DB_USER);
 console.log('DB_PASSWORD:', process.env.DB_PASSWORD);
+console.log('DB_HOST:', process.env.DB_HOST);
+console.log('NODE_ENV:', process.env.NODE_ENV);
+
 
 // Initialisation Sequelize
 
@@ -17,7 +18,8 @@ const sequelize = new Sequelize(
     host: process.env.DB_HOST,
     port: process.env.DB_PORT || 5432,
     dialect: 'postgres',
-    logging: false,        
+    logging: false,  
+    logging: process.env.NODE_ENV === 'development' ? console.log : false,      
     // Ajout pour SSL
   dialectOptions: {
       ssl: process.env.NODE_ENV === 'production' ? {
@@ -25,9 +27,16 @@ const sequelize = new Sequelize(
         rejectUnauthorized: false, // nécessaire pour Render
       }:false
     },
-  }
+  
+ // Options supplémentaires recommandées
+    pool: {
+      max: 5,
+      min: 0,
+      acquire: 30000,
+      idle: 10000
+    }
+   }
 );
-
 // Test de connexion
 sequelize.authenticate()
   .then(() => console.log('Connexion à la DB réussie !'))
