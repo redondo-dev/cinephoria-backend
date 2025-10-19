@@ -5,6 +5,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import setupSwagger from "./config/swagger.config.js";
 
+import publicFilmRoutes from "../src/routes/public/public.films.routes.js"
 import authRoutes from "../src/routes/auth/auth.routes.js";
 import protectedRoutes from "../src/routes/auth/protected.routes.js";
 import adminRoutes from "../src/routes/admin.routes.js";
@@ -18,7 +19,7 @@ const app = express();
 // Middleware globaux
 app.use(helmet());
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: 'http://localhost:4200',
   credentials: true
 }));
 app.use(express.json());
@@ -32,6 +33,9 @@ const contactLimiter = rateLimit({
   message: "Trop de requêtes de contact, veuillez réessayer plus tard."
 });
 app.use('/contact', contactLimiter, contactRoutes);
+
+// Routes API PUBLIQUES 
+app.use('/api/films', publicFilmRoutes);
 
 // Routes API
 app.use('/api/auth', authRoutes);
