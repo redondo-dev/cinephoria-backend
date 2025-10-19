@@ -801,6 +801,31 @@ paths:
       responses:
         "200":
           description: Statistiques du tableau de bord renvoyées
+  /api/films:
+    get:
+      summary: Récupère tous les films (route publique)
+      tags:
+        - Films Publics
+      responses:
+        "200":
+          description: Liste des films
+  "/api/films/{id}":
+    get:
+      summary: Récupère un film par son ID (route publique)
+      tags:
+        - Films Publics
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID du film
+      responses:
+        "200":
+          description: Film trouvé
+        "404":
+          description: Film non trouvé
   /reservations:
     post:
       summary: Crée une nouvelle réservation
