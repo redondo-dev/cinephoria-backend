@@ -73,6 +73,7 @@ export const login = async (req, res) => {
   }
 };
 
+
 // LOGOUT
 export const logout = (req, res) => {
   res.clearCookie("auth_token");
