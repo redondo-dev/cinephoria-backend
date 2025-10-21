@@ -13,6 +13,7 @@ import employeeRoutes from "../src/routes/employee.routes.js";
 import userRoutes from "../src/routes/user.routes.js";
 import reservationRoutes from "../src/routes/reservation.routes.js";
 import contactRoutes from "../src/routes/contact.routes.js";
+import { verifyToken } from "../src/middleware/auth.middleware.js";
 
 const app = express();
 
@@ -37,16 +38,15 @@ app.use('/contact', contactLimiter, contactRoutes);
 
 // Routes API PUBLIQUES 
 app.use('/api/films', publicFilmRoutes);
-
-// Routes API
 app.use('/api/auth', authRoutes);
-app.use('/api', protectedRoutes);
-app.use('/api/reservations', reservationRoutes);
+app.use('/contact',contactRoutes);
 
-// Routes admin / employee / user
-app.use('/admin', adminRoutes);
-app.use('/employee', employeeRoutes);
-app.use('/user', userRoutes);
+// 🔐 Routes PROTÉGÉES (JWT requis)
+app.use('/api', verifyToken, protectedRoutes);
+app.use('/api/reservations', verifyToken, reservationRoutes);
+app.use('/user', verifyToken, userRoutes);
+app.use('/employee', verifyToken, employeeRoutes);
+app.use('/admin', verifyToken, adminRoutes);
 
 // Documentation Swagger
 

@@ -50,7 +50,7 @@ export const login = async (req, res) => {
     );
 
     // Cookie HttpOnly
-    res.cookie("auth_token", token, {
+    res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
@@ -76,7 +76,7 @@ export const login = async (req, res) => {
 
 // LOGOUT
 export const logout = (req, res) => {
-  res.clearCookie("auth_token");
+  res.clearCookie("token");
   res.json({ message: "Déconnexion réussie" });
 };
 
