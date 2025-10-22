@@ -15,7 +15,10 @@ const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
 export const login = async (req, res) => {
   const { email, password } = req.body;
 
+ console.log('📩 Requête reçue =>', req.body);
+
   if (!email || !password) {
+    
     return res.status(400).json({ message: "Email et mot de passe requis" });
   }
 
@@ -26,8 +29,11 @@ export const login = async (req, res) => {
     });
 
     if (!user) {
+      console.log('❌ Aucun utilisateur trouvé pour cet email:', email);
       return res.status(401).json({ message: "Utilisateur non trouvé" });
     }
+    console.log('✅ Utilisateur trouvé:', user.email);
+    console.log('🔐 Hash stocké:', user.password.slice(0, 10) + '...');
   
     console.log("Role :", user.roleDetails?.nom_role);
 

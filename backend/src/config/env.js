@@ -8,7 +8,7 @@ const currentEnv = process.env.NODE_ENV || 'development';
 const envFile =
   currentEnv === 'production' ? '.env.production' : '.env';
 
-// Vérifie si les variables Render (ou autres) existent déjà
+// Vérifie si les variables Render  existent déjà
 if (!process.env.DB_HOST) {
   const envPath = path.resolve(process.cwd(), envFile);
 
