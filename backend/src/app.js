@@ -39,11 +39,11 @@ app.use('/contact', contactLimiter, contactRoutes);
 // Routes API PUBLIQUES 
 app.use('/api/films', publicFilmRoutes);
 app.use('/api/auth', authRoutes);
-app.use('/contact',contactRoutes);
+
 
 // 🔐 Routes PROTÉGÉES (JWT requis)
-app.use('/api', verifyToken, protectedRoutes);
 app.use('/api/reservations', verifyToken, reservationRoutes);
+app.use('/api', verifyToken, protectedRoutes);
 app.use('/user', verifyToken, userRoutes);
 app.use('/employee', verifyToken, employeeRoutes);
 app.use('/admin', verifyToken, adminRoutes);
