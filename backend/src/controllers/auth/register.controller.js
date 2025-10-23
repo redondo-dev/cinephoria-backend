@@ -1,11 +1,11 @@
 import User from "../../models/user.model.js";
 import { validatePassword } from "../../utils/validatePassword.js";
 import { validateEmail } from "../../utils/validateEmail.js";
-import * as jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { sendTemporaryPassword } from "../../utils/sendTemporaryPassword.js";
 import { setTemporaryPasswordForUser } from "../../utils/setTemporaryPasswordForUser.js";
 import crypto from "crypto";
-import * as bcrypt from "bcrypt";
+import bcrypt from "bcrypt";
 
 // Création d'un compte normal (visiteur/client/utilisateur)
 export const register = async (req, res) => {
