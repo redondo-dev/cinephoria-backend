@@ -14,6 +14,11 @@ import userRoutes from "../src/routes/user.routes.js";
 import reservationRoutes from "../src/routes/reservation.routes.js";
 import contactRoutes from "../src/routes/contact.routes.js";
 import { verifyToken } from "../src/middleware/auth.middleware.js";
+import publicCinemaRoutes from "../src/routes/public/public.cinemas.routes.js";
+import publicReservationRoutes from './routes/public/public.reservations.routes.js';
+
+
+
 
 const app = express();
 
@@ -39,6 +44,8 @@ app.use('/contact', contactLimiter, contactRoutes);
 // Routes API PUBLIQUES 
 app.use('/api/films', publicFilmRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/cinemas', publicCinemaRoutes);
+app.use('/api/public/reservations', publicReservationRoutes);
 
 
 // 🔐 Routes PROTÉGÉES (JWT requis)
