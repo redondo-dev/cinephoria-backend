@@ -39,7 +39,11 @@ const Film = sequelize.define('Film', {
   },
   genre_id: {
     type: DataTypes.INTEGER,
-    allowNull: true, 
+    references: {
+      model: 'genre',
+      key: 'id',
+    },
+  
   },
 }, {
   tableName: 'film',

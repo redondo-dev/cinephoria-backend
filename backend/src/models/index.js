@@ -9,7 +9,7 @@ import User from './user.model.js';
 import Role from './role.model.js';
 import Reservation from './reservation.model.js';
 import Avis from './avis.model.js';
-
+import Siege from './siege.model.js';
 
 // Les Associations
 
@@ -61,4 +61,13 @@ User.hasMany(Reservation, { foreignKey: "utilisateur_id", as: "reservations" });
 Reservation.belongsTo(User, { foreignKey: "utilisateur_id", as: "utilisateur" });
 
 
-export { sequelize, Film, Seance, Salle, Cinema, Genre,User,Role,Reservation,Avis };
+// Association Siege -> Salle (1 siège appartient à 1 salle)
+Siege.belongsTo(Salle, { foreignKey: 'salle_id', as: 'salle', onDelete: 'CASCADE' });
+Salle.hasMany(Siege, { foreignKey: 'salle_id', as: 'sieges' });
+
+// Association Siege -> Reservation (1 siège peut avoir plusieurs réservations)
+Siege.hasMany(Reservation, { foreignKey: 'siege_id', as: 'reservations' });
+Reservation.belongsTo(Siege, { foreignKey: 'siege_id', as: 'siege' });
+
+
+export { sequelize, Film, Seance, Salle, Cinema, Genre,User,Role,Reservation,Avis ,Siege};
