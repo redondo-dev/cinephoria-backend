@@ -1,4 +1,4 @@
-// src/controllers/public/public.cinema.controller.js
+// src/controllers/public/cinema.controller.js
 import { Cinema, Film, Seance,Genre, Salle, Siege, Reservation } from "../../../models/index.js";
 import { Op } from "sequelize";
 
@@ -42,8 +42,6 @@ export const getFilmsByCinema = async (req, res) => {
           as: 'genre',
          attributes: ['id', 'nom'],
         },
-
-
 
         {
           model: Seance,
@@ -100,42 +98,45 @@ export const getSeancesByFilm = async (req, res) => {
 
     const seances = await Seance.findAll({
       where: { 
-        cinemaId, 
-        filmId,
-        dateProjection: { [Op.gte]: new Date() }
+       
+        film_id: filmId,
+        dateHeureDebut: { [Op.gte]: new Date() }
       },
       include: [
         { 
           model: Salle,
-          attributes: ['id', 'nom_salle', 'capacite', 'qualite_projection']
+          as: 'salle',
+          attributes: ['id', 'nom_salle', 'capacite', 'qualite_projection'],
+           where: { cinema_id: cinemaId },
         }
       ],
-      attributes: ['id', 'dateProjection', 'heureDebut', 'heureFin', 'prix'],
-      order: [['dateProjection', 'ASC'], ['heureDebut', 'ASC']]
+      attributes: ['id', 'date_seance', 'dateHeureDebut', 'dateHeureFin'],
+      
+      order: [['date_seance', 'ASC'], ['dateHeureDebut', 'ASC']]
     });
 
     // Calculer les places disponibles pour chaque séance
     const seancesAvecDisponibilite = await Promise.all(
       seances.map(async (seance) => {
-        const placesReservees = await Reservation.sum('nbPlaces', {
-          where: { seanceId: seance.id }
+        const placesReservees = await Reservation.sum('nb_places', {
+          where: { seance_id: seance.id }
         }) || 0;
         
-        const placesDisponibles = seance.Salle.capacite - placesReservees;
+        const placesDisponibles = seance.salle.capacite - placesReservees;
         
         // Ne retourner que les séances avec assez de places
         if (placesDisponibles >= nbPersonnes) {
           return {
             id: seance.id,
-            dateProjection: seance.dateProjection,
-            heureDebut: seance.heureDebut,
-            heureFin: seance.heureFin,
-            prix: seance.prix,
+            date_seance: seance.date_seance,
+            dateHeureDebut: seance.dateHeureDebut,
+            dateHeureFin: seance.dateHeureFin,
+           
             salle: {
-              id: seance.Salle.id,
-              nom: seance.Salle.nom_salle,
-              capacite: seance.Salle.capacite,
-              qualiteProjection: seance.Salle.qualite_projection
+              id: seance.salle.id,
+              nom: seance.salle.nom_salle,
+              capacite: seance.salle.capacite,
+              qualiteProjection: seance.salle.qualite_projection
             },
             placesDisponibles
           };
