@@ -15,7 +15,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
 export const login = async (req, res) => {
   const { email, password } = req.body;
 
- console.log('📩 Requête reçue =>', req.body);
+ console.log(' Requête reçue =>', req.body);
 
   if (!email || !password) {
     
@@ -29,11 +29,11 @@ export const login = async (req, res) => {
     });
 
     if (!user) {
-      console.log('❌ Aucun utilisateur trouvé pour cet email:', email);
+      console.log(' Aucun utilisateur trouvé pour cet email:', email);
       return res.status(401).json({ message: "Utilisateur non trouvé" });
     }
-    console.log('✅ Utilisateur trouvé:', user.email);
-    console.log('🔐 Hash stocké:', user.password.slice(0, 10) + '...');
+    console.log('Utilisateur trouvé:', user.email);
+    console.log(' Hash stocké:', user.password.slice(0, 10) + '...');
   
     console.log("Role :", user.roleDetails?.nom_role);
 
@@ -44,12 +44,15 @@ export const login = async (req, res) => {
     }
 
     // Générer le JWT
+    
+const userRole = user.roleDetails?.nom_role?.toUpperCase(); // "admin" → "ADMIN"
+
     const token = jwt.sign(
       {
         id: user.id,
         email: user.email,
         role_id: user.role_id,
-        role: user.roleDetails?.nom_role,
+        role: userRole
       },
       JWT_SECRET,
       { expiresIn: "5h" }
@@ -68,9 +71,10 @@ export const login = async (req, res) => {
       token,
       user: {
         id: user.id,
+        name: user.name|| user.prenom || user.email,
         email: user.email,
         role_id: user.role_id,
-        role: user.roleDetails?.nom_role,
+        role: userRole,
       },
     });
   } catch (err) {

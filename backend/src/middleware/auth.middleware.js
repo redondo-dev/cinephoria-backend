@@ -15,23 +15,20 @@ import jwt from "jsonwebtoken";
 };
 export const authorizeRoles = (...allowedRoles) => {
   return (req, res, next) => {
-    try {
+       try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Utilisateur non authentifié" });
+      }
+      const userRole = req.user.role?.toUpperCase();
+      const normalizedRoles = allowedRoles.map(r => r.toUpperCase());
 
- if (req.user.role !== 'employe' && req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        message: 'Accès refusé. Vous devez être employé pour accéder à cette ressource.'
-      });
-    }
-
-
-
-      if (!req.user || !allowedRoles.includes(req.user.role)) {
+ if (!normalizedRoles.includes(userRole)) {
         return res.status(403).json({
           success: false,
-          message: 'Accès refusé. Vous n\'avez pas les permissions nécessaires.'
+          message: `Accès refusé. Rôle requis: ${allowedRoles.join(', ')}`
         });
       }
+
 
       next();
     } catch (error) {
