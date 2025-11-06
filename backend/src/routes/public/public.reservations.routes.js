@@ -6,17 +6,15 @@ import {
   getFilmsByCinema,
   getSeancesByFilm,
  
- 
 } from "../../controllers/public/cinema/cinema.controller.js";
+import { getSiegesDisponibles } from "../../controllers/public/siege/siege.controller.js";
 
 const router = express.Router();
-
-
 
 router.get("/cinemas", getCinemas);
 router.get("/cinemas/:id/films", getFilmsByCinema);
 router.get("/cinemas/:cinemaId/films/:filmId/seances", getSeancesByFilm);
-// router.get("/seances/:id/sieges", getSiegesDisponibles);
+router.get("/seances/:id/sieges", getSiegesDisponibles);
 
 
 
