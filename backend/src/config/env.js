@@ -14,7 +14,7 @@ if (!process.env.DB_HOST) {
 
   if (fs.existsSync(envPath)) {
     dotenv.config({ path: envPath });
-    console.log(`✅ Variables chargées depuis ${envFile}`);
+    // console.log(`✅ Variables chargées depuis ${envFile}`);
   } else {
     console.warn(`⚠️ Aucun fichier ${envFile} trouvé, utilisation des variables système`);
   }
@@ -22,6 +22,6 @@ if (!process.env.DB_HOST) {
   console.log('✅ Variables Render déjà présentes — aucun fichier .env chargé');
 }
 
-console.log(`📍 Environnement: ${currentEnv}`);
-console.log(`🗄️  Base de données: ${process.env.DB_HOST}`);
-console.log(`🔌 Port: ${process.env.PORT || 3000}`);
+// console.log(`📍 Environnement: ${currentEnv}`);
+// console.log(`🗄️  Base de données: ${process.env.DB_HOST}`);
+// console.log(`🔌 Port: ${process.env.PORT || 3000}`);
