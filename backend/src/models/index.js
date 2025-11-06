@@ -63,11 +63,10 @@ Reservation.belongsTo(User, { foreignKey: "utilisateur_id", as: "utilisateur" })
 
 // Association Siege -> Salle (1 siège appartient à 1 salle)
 Siege.belongsTo(Salle, { foreignKey: 'salle_id', as: 'salle', onDelete: 'CASCADE' });
-Salle.hasMany(Siege, { foreignKey: 'salle_id', as: 'sieges' });
+Salle.hasMany(Siege, { foreignKey: 'salle_id', as: 'siege' });
 
-// Association Siege -> Reservation (1 siège peut avoir plusieurs réservations)
-Siege.hasMany(Reservation, { foreignKey: 'siege_id', as: 'reservations' });
-Reservation.belongsTo(Siege, { foreignKey: 'siege_id', as: 'siege' });
-
+// Association N-N via table intermédiaire reservation_siege
+Reservation.belongsToMany(Siege, { through: 'reservation_siege', as: 'siegesReserves', foreignKey: 'reservation_id' });
+Siege.belongsToMany(Reservation, { through: 'reservation_siege', as: 'reservationsSieges', foreignKey: 'siege_id' });
 
 export { sequelize, Film, Seance, Salle, Cinema, Genre,User,Role,Reservation,Avis ,Siege};

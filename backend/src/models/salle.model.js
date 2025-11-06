@@ -1,7 +1,6 @@
 // models/salle.model.js
 import { DataTypes } from "sequelize";
 import sequelize from "../config/database.js";
-
 const Salle = sequelize.define("Salle", {
 
    id: {
@@ -10,9 +9,10 @@ const Salle = sequelize.define("Salle", {
       primaryKey: true,
     },
  
-  nom_salle: {
+  nom: {
     type: DataTypes.STRING(100),
     allowNull: false,
+    field: "nom_salle",
     validate: {
       notEmpty: {
         msg: "Le nom de la salle ne peut pas être vide"
@@ -20,8 +20,9 @@ const Salle = sequelize.define("Salle", {
     }
   },
 
-  capacite: {
+  nombrePlaces: {
     type: DataTypes.INTEGER,
+    field: 'capacite' ,
     allowNull: false,
     validate: {
       min: {
@@ -46,8 +47,9 @@ const Salle = sequelize.define("Salle", {
     onDelete: 'CASCADE' // Si le cinéma est supprimé, ses salles aussi
   },
 
-  qualite_projection: {
+  qualiteProjection: {
     type: DataTypes.ENUM('Standard', 'IMAX', '2D', '3D', '4DX', 'Dolby Atmos', 'ScreenX'),
+    field: 'qualite_projection',
     allowNull: false,
     defaultValue: 'Standard',
     validate: {
@@ -58,9 +60,9 @@ const Salle = sequelize.define("Salle", {
     }
   }
 }, {
-  tableName: "salle",
-  timestamps: true, 
   
+  tableName: "salle",
+  timestamps: false, 
 
 });
 
