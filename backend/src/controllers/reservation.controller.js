@@ -4,7 +4,7 @@ import Reservation from "../models/reservation.model.js";
 
 export const createReservation = async (req, res) => {
   try {
-    // On prend utilisateur_id du body 
+    //On prend utilisateur_id du body 
     const { utilisateur_id = null, seance_id, nb_places, prix_unitaire, date_expiration } = req.body;
 
     // Vérification des champs obligatoires
