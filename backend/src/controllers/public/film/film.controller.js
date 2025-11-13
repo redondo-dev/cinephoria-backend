@@ -1,6 +1,9 @@
 // controllers/public/film.controller.js
 import Film from '../../../models/film.model.js';
 import Genre from '../../../models/genre.model.js';
+import Seance from '../../../models/seance.model.js';
+import Salle from '../../../models/salle.model.js'; 
+import Cinema from '../../../models/cinema.model.js';
 // Récupérer tous les films (route publique)
 export const getAllFilmsPublic = async (req, res) => {
   try {
@@ -11,17 +14,35 @@ export const getAllFilmsPublic = async (req, res) => {
           model: Genre,
           as: "genre", // alias défini dans Film.belongsTo()
           attributes: ["id", "nom"] 
+        },
+    {
+      model: Seance,
+      as: 'seances',
+     
+      include: [
+        {
+          model: Salle,
+          as: 'salle',
+          
+          include: [
+            {
+              model: Cinema,
+              as: 'cinema',
+            
+              attributes: ['id', 'nom', 'ville']
+            }
+          ]
         }
       ]
-    });
-
-     if (!films) {
-      return res.status(404).json({
-        success: false,
-        message: 'Film non trouvé'
+    }
+  ]
+});
+  if (!films || films.length === 0) {
+      return res.status(200).json({
+        films: [],
+        total: 0
       });
     }
-    
     res.status(200).json({
       films: films,
   total: films.length

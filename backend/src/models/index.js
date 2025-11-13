@@ -10,6 +10,7 @@ import Role from './role.model.js';
 import Reservation from './reservation.model.js';
 import Avis from './avis.model.js';
 import Siege from './siege.model.js';
+import Tarif from './tarif.model.js';
 
 // Les Associations
 
@@ -69,4 +70,4 @@ Salle.hasMany(Siege, { foreignKey: 'salle_id', as: 'siege' });
 Reservation.belongsToMany(Siege, { through: 'reservation_siege', as: 'siegesReserves', foreignKey: 'reservation_id' });
 Siege.belongsToMany(Reservation, { through: 'reservation_siege', as: 'reservationsSieges', foreignKey: 'siege_id' });
 
-export { sequelize, Film, Seance, Salle, Cinema, Genre,User,Role,Reservation,Avis ,Siege};
+export { sequelize, Film, Seance, Salle, Cinema, Genre,User,Role,Reservation,Avis ,Siege,Tarif};

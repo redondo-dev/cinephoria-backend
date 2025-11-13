@@ -3,19 +3,20 @@ import { sendEmail } from "../../utils/emailContact.js";
 
 export const postContact = async (req, res) => {
   try {
-    const { nom, titre, description } = req.body;
+    const { nom,email, titre, description } = req.body;
 
     const message = `
        Nouveau message reçu depuis le site Cinéphoria
       
        Nom : ${nom || "Anonyme"}
+      Email : ${email}
        Sujet : ${titre || "Sans titre"}
        Message :
       ${description || "Aucun message fourni"}
     `;
 
     await sendEmail({
-    nom, titre, description
+    nom,email, titre, description
     });
 
     res.status(200).json({

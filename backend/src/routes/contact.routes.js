@@ -57,6 +57,6 @@ router.post('/send',validateContact, postContact);
  *       400:
  *         description: Données invalides
  */
-router.post("/send", validateContact, postContact);
+
    
 export default router;

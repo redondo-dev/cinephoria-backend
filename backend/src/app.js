@@ -16,7 +16,7 @@ import contactRoutes from "../src/routes/contact.routes.js";
 import { authorizeRoles, verifyToken } from "../src/middleware/auth.middleware.js";
 import publicCinemaRoutes from "../src/routes/public/public.cinemas.routes.js";
 import publicReservationRoutes from './routes/public/public.reservations.routes.js';
-
+import publicSeancesRoutes from './routes/public/public.seance.routes.js';
 
 
 
@@ -46,6 +46,7 @@ const contactLimiter = rateLimit({
 app.use('/api/auth', authRoutes);
 app.use('/api/films', publicFilmRoutes);
 app.use('/api/cinemas', publicCinemaRoutes);
+app.use('/api/seances', publicSeancesRoutes);
 app.use('/api/public/reservations', publicReservationRoutes);
 app.use('/contact', contactLimiter, contactRoutes);
 

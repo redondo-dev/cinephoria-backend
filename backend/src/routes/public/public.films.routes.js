@@ -39,6 +39,7 @@ router.get('/',getAllFilmsPublic )
  *         description: Film non trouvé
  */
 router.get('/:id',getFilmByIdPublic )
+
   
 
 export default router;
