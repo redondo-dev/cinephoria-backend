@@ -47,7 +47,7 @@ export const getFilmsByCinema = async (req, res) => {
           as: 'seances',
           required: true,
           where: {
-            date_seance: {
+            dateHeureDebut: {
               [Op.gte]: new Date(), // à partir d'aujourd'hui
             },
           },
@@ -68,6 +68,8 @@ export const getFilmsByCinema = async (req, res) => {
         },
       ],
       distinct: true,
+       raw: false, 
+       nest: true, 
     });
 
     console.log(` ${films.length} films trouvés`);
@@ -111,7 +113,9 @@ export const getSeancesByFilm = async (req, res) => {
       attributes: ['id', 'date_seance', 'dateHeureDebut', 'dateHeureFin'],
       order: [['date_seance', 'ASC'], ['dateHeureDebut', 'ASC']]
     });
-
+console.log('🔍 Paramètres reçus:', { cinemaId, filmId, nbPersonnes }); // AJOUTEZ
+console.log('📅 Séances trouvées:', seances.length); // AJOUTEZ
+console.log('🏢 Première séance complète:', JSON.stringify(seances[0], null, 2)); // AJOUTEZ
     if (seances.length === 0) {
       return res.json([]);
     }
@@ -139,9 +143,16 @@ export const getSeancesByFilm = async (req, res) => {
     const seancesDisponibles = seances
       .map(seance => {
         const placesReservees = reservationsMap[seance.id] || 0;
-        const placesDisponibles = seance.salle.capacite - placesReservees;
-        
-        // Ne retourner que les séances avec assez de places
+       const placesDisponibles = (seance.salle.dataValues?.capacite || seance.salle.capacite) - placesReservees;
+        console.log('🔍 DEBUG seance.salle:', seance.salle); // AJOUTEZ CETTE LIGNE
+       console.log('🎬🎬🎬 TEST NOUVELLE VERSION - Séance', seance.id , ':', {
+          capacite: seance.salle.dataValues?.capacite || seance.salle.capacite,
+          reservees: placesReservees,
+          disponibles: placesDisponibles,
+          nbPersonnes
+          
+        });
+
         if (placesDisponibles >= nbPersonnes) {
           return {
             id: seance.id,
@@ -150,17 +161,17 @@ export const getSeancesByFilm = async (req, res) => {
             dateHeureFin: seance.dateHeureFin,
             salle: {
               id: seance.salle.id,
-              nom: seance.salle.nom_salle,
+              nom_salle: seance.salle.nom_salle,
               capacite: seance.salle.capacite,
-              qualiteProjection: seance.salle.qualite_projection
+              qualite_projection: seance.salle.qualite_projection
             },
-            placesDisponibles
+            places_disponibles: placesDisponibles
           };
         }
         return null;
       })
       .filter(s => s !== null);
-
+console.log('Données envoyées:', seancesDisponibles);
     res.json(seancesDisponibles);
     
   } catch (error) {

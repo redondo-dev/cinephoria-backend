@@ -69,9 +69,10 @@ export const getSeancesByFilm = async (req, res) => {
     const { filmId } = req.params;
 
     const seances = await Seance.findAll({
+      
       where: {
-        filmId: filmId,
-        date_seance: {
+        film_id: filmId,
+        dateHeureDebut: {
           [Op.gte]: new Date() // Seulement les séances futures
         }
       },

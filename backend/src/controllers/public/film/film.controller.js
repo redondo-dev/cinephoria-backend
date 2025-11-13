@@ -18,7 +18,8 @@ export const getAllFilmsPublic = async (req, res) => {
     {
       model: Seance,
       as: 'seances',
-     
+      
+    
       include: [
         {
           model: Salle,
