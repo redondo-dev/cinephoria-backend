@@ -22,6 +22,14 @@ export const connectMongo = async () => {
     console.log(`Base de données: ${mongoose.connection.name}`);
     console.log(`État: ${mongoose.connection.readyState}`); // Doit être 1
     
+ if (process.env.NODE_ENV === "production") {
+      console.log("🚀 MongoDB connecté **en PRODUCTION**");
+    } else {
+      console.log("🧪 MongoDB connecté en MODE DEV");
+    }
+
+
+
     // Événements
     mongoose.connection.on('error', (err) => {
       console.error(' Erreur MongoDB:', err);
