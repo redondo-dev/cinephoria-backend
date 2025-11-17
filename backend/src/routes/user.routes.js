@@ -8,7 +8,8 @@ import {
 } from '../middleware/auth.middleware.js';
 
 import { getMesCommandes, getCommandeById } from '../controllers/user/commande.controller.js';
-import { createAvis, getMesAvis, getFilmsANoter } from '../controllers/user/avis.controller.js';
+import { createAvis, getMesAvis, getFilmsANoter ,getAvisUtilisateur,
+  modifierAvis} from '../controllers/user/avis.controller.js';
 import { getProfile } from '../controllers/user/profil.controller.js';
 
 // Appliquer authenticate + isClient + requireConfirmedAccount à TOUTES les routes
@@ -194,6 +195,58 @@ router.post("/avis", createAvis);
  */
 router.get("/avis", getMesAvis);
 
+router.get("/avis/film/:filmId", getAvisUtilisateur); 
+/**
+ * @swagger
+ * /user/avis/{id}:
+ *   put:
+ *     summary: Modifie un avis existant de l'utilisateur
+ *     description: Remet l'avis en attente de validation après modification
+ *     tags: [Utilisateur]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: ID de l'avis à modifier
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               note:
+ *                 type: integer
+ *                 minimum: 1
+ *                 maximum: 5
+ *                 example: 4
+ *               contenu:
+ *                 type: string
+ *                 minLength: 10
+ *                 example: "Après réflexion, ce film mérite 4 étoiles"
+ *     responses:
+ *       200:
+ *         description: Avis modifié avec succès
+ *       404:
+ *         description: Avis non trouvé ou non autorisé
+ */
+
+
+router.put("/avis/:id", modifierAvis); 
+
+/**
+ * @swagger
+ * /user/films-a-noter:
+ *   get:
+ *     summary: Liste les films que l'utilisateur peut noter (séances passées uniquement)
+ *     tags: [Utilisateur]
+ *     security:
+ *       - bearerAuth: []
+ */
 /**
  * @swagger
  * /user/films-a-noter:
