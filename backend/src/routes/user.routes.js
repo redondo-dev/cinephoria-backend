@@ -55,8 +55,10 @@ router.use(requireConfirmedAccount);
  *       401:
  *         description: Non autorisé - token manquant ou invalide
  */
-router.get("/profile", getProfile);
 
+router.get("/profile", getProfile);
+router.get("/commandes", getMesCommandes);
+router.get("/reservations", getMesCommandes); 
 /**
  * @swagger
  * /user/commandes:
@@ -87,7 +89,9 @@ router.get("/profile", getProfile);
  *       401:
  *         description: Non autorisé
  */
-router.get("/commandes", getMesCommandes);
+router.get("/commandes/:id", getCommandeById);
+
+
 
 /**
  * @swagger
@@ -124,7 +128,7 @@ router.get("/commandes", getMesCommandes);
  *       404:
  *         description: Commande non trouvée
  */
-router.get("/commandes/:id", getCommandeById);
+router.get("/reservations/:id", getCommandeById);
 
 /**
  * @swagger

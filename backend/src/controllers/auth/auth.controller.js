@@ -15,7 +15,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
 export const login = async (req, res) => {
   const { email, password } = req.body;
 
- console.log(' Requête reçue =>', req.body);
+ console.log('🔐 [BACKEND] Login attempt:', email);
 
   if (!email || !password) {
     
@@ -27,18 +27,22 @@ export const login = async (req, res) => {
       where: { email },
       include: [{ model: Role, as: "roleDetails" }],
     });
+console.log("[DEBUG] email reçu:", req.body.email);
+console.log("[DEBUG] password reçu:", req.body.password);
+console.log("[LOGIN DEBUG] user trouvé:", user);
 
     if (!user) {
-      console.log(' Aucun utilisateur trouvé pour cet email:', email);
+       console.log('❌ [BACKEND] Aucun utilisateur trouvé pour:', email);
       return res.status(401).json({ message: "Utilisateur non trouvé" });
     }
-    console.log('Utilisateur trouvé:', user.email);
-    console.log(' Hash stocké:', user.password.slice(0, 10) + '...');
-  
-    console.log("Role :", user.roleDetails?.nom_role);
-
+  console.log('✅ [BACKEND] Utilisateur trouvé:', user.email);
+    console.log('🔑 [BACKEND] Role:', user.roleDetails?.nom_role);
+    console.log('📝 [BACKEND] Prénom/Nom:', user.prenom, user.nom);
+    
     // Vérification du mot de passe
     const passwordMatch = await bcrypt.compare(password, user.password);
+    console.log("[LOGIN DEBUG] passwordMatch:", passwordMatch); 
+
     if (!passwordMatch) {
       return res.status(401).json({ message: "Identifiants invalides" });
     }
@@ -75,6 +79,8 @@ const userRole = user.roleDetails?.nom_role?.toUpperCase(); // "admin" → "ADMI
         email: user.email,
         role_id: user.role_id,
         role: userRole,
+        prenom: user.prenom, 
+        nom: user.nom,     
       },
     });
   } catch (err) {

@@ -70,7 +70,10 @@ const contactLimiter = rateLimit({
  
 });
 
-
+app.use((req, res, next) => {
+  console.log(`📥 ${req.method} ${req.url}`);
+  next();
+});
 
 // Routes API PUBLIQUES 
 app.use('/api/auth', authRoutes);

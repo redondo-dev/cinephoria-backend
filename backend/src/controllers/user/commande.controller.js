@@ -9,6 +9,7 @@ import Cinema from '../../models/cinema.model.js';
  * Récupérer toutes les réservations de l'utilisateur
  */
 export const getMesCommandes = async (req, res) => {
+    console.log('🎯 getMesCommandes appelé pour userId:', req.user?.id);
   try {
     const userId = req.user.id;
 
