@@ -46,21 +46,22 @@ app.use(helmet());
 // CORS → autorise le frontend Angular 
 app.use(cors({
   origin: [
+    'https://cinephoria-k61o0090a-riads-projects-4e98048c.vercel.app/home',
     'https://cinephoria-frontend.vercel.app',
     'https://cinephoria-evpf82dkl-riads-projects-4e98048c.vercel.app',
+    
     'http://localhost:4200',
     'https://localhost:4200'
   ],
    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-  credentials: true
+  credentials: true,
+   preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
 
 //pour accepter TOUS les domains (développement seulement)
-app.use(cors({
-  origin: "*",
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
-}));
+app.options('*', cors());
 // Parse JSON et URL Encoded
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
