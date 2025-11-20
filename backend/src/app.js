@@ -43,20 +43,24 @@ const app = express();
 // Helmets → sécurise les headers HTTP
 app.use(helmet());
 
-// CORS → autorise le frontend Angular
+// CORS → autorise le frontend Angular 
 app.use(cors({
-  origin: ['http://localhost:4200',
-    'http://localhost:3000',
+  origin: [
     'https://cinephoria-frontend.vercel.app',
-    'https://*.vercel.app',
     'https://cinephoria-evpf82dkl-riads-projects-4e98048c.vercel.app',
-    'https://cinephoria-backend-i6be.onrender.com'
+    'http://localhost:4200',
+    'https://localhost:4200'
   ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   credentials: true
 }));
 
-
+//pour accepter TOUS les domains (développement seulement)
+app.use(cors({
+  origin: "*",
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+}));
 // Parse JSON et URL Encoded
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
