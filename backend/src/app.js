@@ -49,7 +49,6 @@ app.use(cors({
     'https://cinephoria-k61o0090a-riads-projects-4e98048c.vercel.app',
     'https://cinephoria-frontend.vercel.app',
     'https://cinephoria-evpf82dkl-riads-projects-4e98048c.vercel.app',
-   
     'http://localhost:4200',
     'https://localhost:4200'
   ],
@@ -61,7 +60,14 @@ app.use(cors({
 }));
 
 //pour accepter TOUS les domains (développement seulement)
-app.options('*', cors());
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.sendStatus(200);
+});
+
 // Parse JSON et URL Encoded
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
