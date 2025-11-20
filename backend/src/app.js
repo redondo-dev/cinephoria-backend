@@ -47,10 +47,10 @@ app.use(helmet());
 app.use(cors({
   origin: ['http://localhost:4200',
     'http://localhost:3000',
-    'https://cinephoria-alpha.vercel.app',
-    'https://cinephoria-k3js5zc15-riads-projects-4e98048c.vercel.app',
     'https://cinephoria-frontend.vercel.app',
-    'https://*.vercel.app'
+    'https://*.vercel.app',
+    'https://cinephoria-evpf82dkl-riads-projects-4e98048c.vercel.app',
+    'https://cinephoria-backend-i6be.onrender.com'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   credentials: true
