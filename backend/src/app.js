@@ -41,25 +41,34 @@ const app = express();
 // ----------------------------
 
 // Helmets → sécurise les headers HTTP
-app.use(helmet());
+app.use(helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 
 // CORS → autorise le frontend Angular 
 app.use(cors({
-  origin: [
-    'https://frontend-1f91ww1hw-riads-projects-4e98048c.vercel.app',
-    'https://cinephoria-k61o0090a-riads-projects-4e98048c.vercel.app',
-    'https://cinephoria-frontend.vercel.app',
-    'https://cinephoria-evpf82dkl-riads-projects-4e98048c.vercel.app',
-    'http://localhost:4200',
-    'https://localhost:4200'
-  ],
-   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  origin: function (origin, callback) {
+    // Autoriser les requêtes sans origin (Postman, curl, etc.)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('❌ Origine refusée:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+  exposedHeaders: ['Content-Length', 'X-Request-Id'],
   credentials: true,
-   preflightContinue: false,
-  optionsSuccessStatus: 204
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
+  maxAge: 86400 
 }));
 
+// Gérer les OPTIONS manuellement
+app.options('*', cors());
 
 
 // Parse JSON et URL Encoded
