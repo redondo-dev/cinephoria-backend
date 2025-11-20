@@ -16,7 +16,7 @@ export const getAvailableDates = async (req, res) => {
       attributes: ['date_seance'],
       where: {
         date_seance: {
-          [Op.gte]: new Date('2023-01-01') // Seulement les dates futures
+          [Op.gte]: new Date() 
         }
       },
       group: ['date_seance'],

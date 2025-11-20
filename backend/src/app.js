@@ -45,7 +45,13 @@ app.use(helmet());
 
 // CORS → autorise le frontend Angular
 app.use(cors({
-  origin: 'http://localhost:4200',
+  origin: ['http://localhost:4200',
+    'http://localhost:3000',
+    'https://cinephoria-alpha.vercel.app',
+    'https://cinephoria-k3js5zc15-riads-projects-4e98048c.vercel.app',
+    'https://cinephoria-frontend.vercel.app',
+    'https://*.vercel.app'
+  ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   credentials: true
 }));
