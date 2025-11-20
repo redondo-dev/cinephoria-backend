@@ -46,6 +46,7 @@ app.use(helmet());
 // CORS → autorise le frontend Angular 
 app.use(cors({
   origin: [
+    'https://frontend-1f91ww1hw-riads-projects-4e98048c.vercel.app',
     'https://cinephoria-k61o0090a-riads-projects-4e98048c.vercel.app',
     'https://cinephoria-frontend.vercel.app',
     'https://cinephoria-evpf82dkl-riads-projects-4e98048c.vercel.app',
