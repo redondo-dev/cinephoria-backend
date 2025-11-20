@@ -60,14 +60,7 @@ app.use(cors({
   optionsSuccessStatus: 204
 }));
 
-//pour accepter TOUS les domains (développement seulement)
-app.options('*', (req, res) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.sendStatus(200);
-});
+
 
 // Parse JSON et URL Encoded
 app.use(express.json());
