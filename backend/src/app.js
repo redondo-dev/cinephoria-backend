@@ -103,8 +103,7 @@ app.use(cors({
   maxAge: 86400 // Cache preflight 24h
 }));
 
-// ⚠️ CRITIQUE : Gérer OPTIONS avant toutes les routes
-app.options('*', cors());
+
 
 // Parse JSON et URL Encoded
 app.use(express.json());
