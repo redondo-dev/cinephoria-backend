@@ -42,34 +42,69 @@ const app = express();
 
 // Helmets → sécurise les headers HTTP
 app.use(helmet({
-    crossOriginResourcePolicy: { policy: "cross-origin" }
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+     contentSecurityPolicy: false 
 }));
 
-// CORS → autorise le frontend Angular 
+const allowedOrigins = [
+  // Vos domaines Vercel (ajoutez TOUS vos domaines)
+  'https://frontend-1f91ww1hw-riads-projects-4e98048c.vercel.app',
+  'https://cinephoria-k61o0090a-riads-projects-4e98048c.vercel.app',
+  'https://cinephoria-frontend.vercel.app',
+  'https://cinephoria-evpf82dkl-riads-projects-4e98048c.vercel.app',
+  
+  // Pattern pour tous les déploiements Vercel (preview + production)
+  /^https:\/\/.*\.vercel\.app$/,
+  
+  // Développement local
+  'http://localhost:4200',
+  'http://localhost:3000',
+  'https://localhost:4200'
+];
+
 app.use(cors({
   origin: function (origin, callback) {
-    // Autoriser les requêtes sans origin (Postman, curl, etc.)
-    if (!origin) return callback(null, true);
+    // Autoriser les requêtes sans origin (Postman)
+    if (!origin) {
+      console.log('✅ [CORS] Requête sans origin (outil/serveur)');
+      return callback(null, true);
+    }
     
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    // Vérifier si l'origine est autorisée
+    const isAllowed = allowedOrigins.some(allowed => {
+      if (typeof allowed === 'string') {
+        return allowed === origin;
+      }
+      // Pour les RegExp
+      return allowed.test(origin);
+    });
+    
+    if (isAllowed) {
+      console.log('✅ [CORS] Origine autorisée:', origin);
       callback(null, true);
     } else {
-      console.log('❌ Origine refusée:', origin);
-      callback(new Error('Not allowed by CORS'));
+      console.log('❌ [CORS] Origine refusée:', origin);
+      callback(new Error(`CORS: Origine ${origin} non autorisée`));
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+  allowedHeaders: [
+    'Content-Type', 
+    'Authorization', 
+    'Accept', 
+    'Origin', 
+    'X-Requested-With',
+    'Access-Control-Allow-Credentials'
+  ],
   exposedHeaders: ['Content-Length', 'X-Request-Id'],
   credentials: true,
   preflightContinue: false,
   optionsSuccessStatus: 204,
-  maxAge: 86400 
+  maxAge: 86400 // Cache preflight 24h
 }));
 
-// Gérer les OPTIONS manuellement
+// ⚠️ CRITIQUE : Gérer OPTIONS avant toutes les routes
 app.options('*', cors());
-
 
 // Parse JSON et URL Encoded
 app.use(express.json());
