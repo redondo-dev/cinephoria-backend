@@ -48,9 +48,10 @@ app.use(helmet({
 
 const allowedOrigins = [
   // Vos domaines Vercel (ajoutez TOUS vos domaines)
+  'https://cinephoria-frontend.vercel.app',
+  'https://cinephoria-n20fcvfc4-riads-projects-4e98048c.vercel.app',
   'https://frontend-1f91ww1hw-riads-projects-4e98048c.vercel.app',
   'https://cinephoria-k61o0090a-riads-projects-4e98048c.vercel.app',
-  'https://cinephoria-frontend.vercel.app',
   'https://cinephoria-evpf82dkl-riads-projects-4e98048c.vercel.app',
   
   // Pattern pour tous les déploiements Vercel (preview + production)
@@ -59,7 +60,8 @@ const allowedOrigins = [
   // Développement local
   'http://localhost:4200',
   'http://localhost:3000',
-  'https://localhost:4200'
+  'http://127.0.0.1:4200',
+  'http://127.0.0.1:3000'
 ];
 
 app.use(cors({
