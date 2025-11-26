@@ -3,6 +3,7 @@ import Role from "../../models/role.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import crypto from 'crypto'; 
+import { validateEmail } from "../../utils/validateEmail.js";
 
 import { sendTemporaryPassword } from "../../utils/sendTemporaryPassword.js";
 import { setTemporaryPasswordForUser } from "../../utils/setTemporaryPasswordForUser.js";
@@ -173,9 +174,9 @@ export const forgotPasswordVisitor = async (req, res) => {
     const user = await User.findOne({ where: { email } ,
       include: [{ model: Role, as: "roleDetails" }]
   });
-
+ const userRole = user?.roleDetails?.nom_role?.toUpperCase();
     // Toujours répondre de façon générique pour éviter l'énumération d'emails
-    if (!user || !['VISITEUR', 'CLIENT'].includes(user.roleDetails?.nom_role?.toUpperCase()))
+    if (!user || !['VISITEUR', 'CLIENT'].includes(userRole))
     {
       return res.status(200).json({
         success: true,
