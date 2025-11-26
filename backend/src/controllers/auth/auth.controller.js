@@ -32,12 +32,12 @@ console.log("[DEBUG] password reçu:", req.body.password);
 console.log("[LOGIN DEBUG] user trouvé:", user);
 
     if (!user) {
-       console.log('❌ [BACKEND] Aucun utilisateur trouvé pour:', email);
+       console.log(' [BACKEND] Aucun utilisateur trouvé pour:', email);
       return res.status(401).json({ message: "Utilisateur non trouvé" });
     }
-  console.log('✅ [BACKEND] Utilisateur trouvé:', user.email);
-    console.log('🔑 [BACKEND] Role:', user.roleDetails?.nom_role);
-    console.log('📝 [BACKEND] Prénom/Nom:', user.prenom, user.nom);
+  console.log('[BACKEND] Utilisateur trouvé:', user.email);
+    console.log(' [BACKEND] Role:', user.roleDetails?.nom_role);
+    console.log('[BACKEND] Prénom/Nom:', user.prenom, user.nom);
     
     // Vérification du mot de passe
     const passwordMatch = await bcrypt.compare(password, user.password);
@@ -170,10 +170,13 @@ export const forgotPasswordVisitor = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Email invalide' });
     }
 
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findOne({ where: { email } ,
+      include: [{ model: Role, as: "roleDetails" }]
+  });
 
     // Toujours répondre de façon générique pour éviter l'énumération d'emails
-    if (!user || user.role !== 'visiteur' && user.role !== 'client' && user.role !== 'CLIENT') {
+    if (!user || !['VISITEUR', 'CLIENT'].includes(user.roleDetails?.nom_role?.toUpperCase()))
+    {
       return res.status(200).json({
         success: true,
         message: "Si ce compte existe, vous recevrez un mail contenant un mot de passe temporaire."
