@@ -173,7 +173,7 @@ export const forgotPasswordVisitor = async (req, res) => {
     const user = await User.findOne({ where: { email } });
 
     // Toujours répondre de façon générique pour éviter l'énumération d'emails
-    if (!user || user.role !== 'visiteur') {
+    if (!user || user.role !== 'visiteur' && user.role !== 'client' && user.role !== 'CLIENT') {
       return res.status(200).json({
         success: true,
         message: "Si ce compte existe, vous recevrez un mail contenant un mot de passe temporaire."
