@@ -98,11 +98,16 @@ export const getSeancesByFilm = async (req, res) => {
     }
 
     console.log('🔍 Paramètres reçus:', { cinemaId, filmId, nbPersonnes });
+    console.log('🔍 Recherche avec:', {
+  film_id: parseInt(filmId),
+  cinema_id: parseInt(cinemaId),
+  nbPersonnes
+});
 
     // ✅ OPTIMISATION: Une seule requête avec tous les includes nécessaires
     const seances = await Seance.findAll({
       where: { 
-        filmId: filmId, // ✅ camelCase (Sequelize convertit en film_id)
+        film_id:perseInt(filmId), 
         dateHeureDebut: { [Op.gte]: new Date() } // ✅ Filtre les séances futures uniquement
       },
       include: [
@@ -151,7 +156,7 @@ export const getSeancesByFilm = async (req, res) => {
 
         // ✅ FIX CRITIQUE: Vérifier que la séance est future (déjà filtré par la requête, mais double sécurité)
         const isFuture = new Date(seance.dateHeureDebut) >= new Date();
-
+        console.log(`Séance ${seance.id}: capacité=${capaciteSalle}, réservées=${placesReservees}, dispo=${placesDisponibles}, future=${isFuture}`);
         // Filtrer: places suffisantes + capacité valide
         if (placesDisponibles >= nbPersonnes && capaciteSalle > 0 && isFuture) {
           return {
