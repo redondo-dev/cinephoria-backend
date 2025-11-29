@@ -107,7 +107,7 @@ export const getSeancesByFilm = async (req, res) => {
     // ✅ OPTIMISATION: Une seule requête avec tous les includes nécessaires
     const seances = await Seance.findAll({
       where: { 
-        film_id:perseInt(filmId), 
+        film_id:parseInt(filmId), 
         dateHeureDebut: { [Op.gte]: new Date() } // ✅ Filtre les séances futures uniquement
       },
       include: [
