@@ -138,11 +138,11 @@ export const getSeancesByFilm = async (req, res) => {
     console.log(`📅 ${seances.length} séances trouvées`);
 
     if (seances.length === 0) {
-      console.log('❌ Aucune séance trouvée pour ces paramètres');
+      console.log(' Aucune séance trouvée pour ces paramètres');
       return res.json([]);
     }
 
-    // ✅ Calculer les places disponibles et filtrer
+    // Calculer les places disponibles et filtrer
     const seancesDisponibles = seances
       .map(seance => {
         // Calculer le total des places réservées
@@ -154,7 +154,7 @@ export const getSeancesByFilm = async (req, res) => {
         const capaciteSalle = salle?.capacite || 0;
         const placesDisponibles = capaciteSalle - placesReservees;
 
-        // ✅ FIX CRITIQUE: Vérifier que la séance est future (déjà filtré par la requête, mais double sécurité)
+        // FIX CRITIQUE: Vérifier que la séance est future (déjà filtré par la requête, mais double sécurité)
         const isFuture = new Date(seance.dateHeureDebut) >= new Date();
         console.log(`Séance ${seance.id}: capacité=${capaciteSalle}, réservées=${placesReservees}, dispo=${placesDisponibles}, future=${isFuture}`);
         // Filtrer: places suffisantes + capacité valide
@@ -178,13 +178,13 @@ export const getSeancesByFilm = async (req, res) => {
       })
       .filter(s => s !== null);
 
-    console.log(`✅ ${seancesDisponibles.length} séances disponibles pour ${nbPersonnes} personne(s)`);
+    console.log(` ${seancesDisponibles.length} séances disponibles pour ${nbPersonnes} personne(s)`);
 
     res.json(seancesDisponibles);
     
   } catch (error) {
-    console.error("❌ Erreur getSeancesByFilm:", error);
-    console.error("📝 Stack trace:", error.stack);
+    console.error("Erreur getSeancesByFilm:", error);
+    console.error(" Stack trace:", error.stack);
     res.status(500).json({ 
       message: "Erreur lors de la récupération des séances",
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
