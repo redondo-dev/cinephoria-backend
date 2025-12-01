@@ -10,7 +10,6 @@ Ce dépôt contient **le backend** (Node.js, Express, PostgreSQL) et **le fronte
 - [Prérequis](#prérequis)
 - [Installation](#installation)
   - [Backend](#backend)
-  - [Frontend](#frontend)
 - [Configuration](#configuration)
 - [Structure du projet](#structure-du-projet)
 - [Scripts utiles](#scripts-utiles)
@@ -23,7 +22,6 @@ Ce dépôt contient **le backend** (Node.js, Express, PostgreSQL) et **le fronte
 - Node.js >= 20
 - NPM ou Yarn
 - PostgreSQL
-- Angular CLI (`npm install -g @angular/cli`)
 - Nodemon (pour le développement backend)
 - Express
 
