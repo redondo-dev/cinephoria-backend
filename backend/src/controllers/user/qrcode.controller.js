@@ -13,47 +13,26 @@ export const getReservationQRCode = async (req, res) => {
         const reservationId = parseInt(req.params.id);
         
         // TEMPORAIRE : Pour testing sans auth
-        // const userId = req.user ? req.user.id : 1;
+        const userId = req.user ? req.user.id : 1;
         
-        console.log('Looking for reservation ID:', reservationId);
+       console.log('User ID (temporary):', userId);
 
         // 1. Vérifier que la réservation existe avec toutes les infos nécessaires
         const reservation = await Reservation.findOne({
             where: { id: reservationId },
-            // TEMPORAIRE : Enlevez la condition utilisateur pour testing
-            // where: { 
-            //     id: reservationId,
+            // // TEMPORAIRE : Enlevez la condition utilisateur pour testing
+             where: { 
+                 id: reservationId,
             //     utilisateur_id: userId 
-            // },
-            include: [
-                {
-                    model: Seance,
-                    as: 'seance', // ← Utilisez le bon alias
-                    include: [
-                        {
-                            model: Film,
-                            as: 'film',
-                            attributes: ['id', 'titre', 'duree']
-                        },
-                        {
-                            model: Salle,
-                            as: 'salle',
-                            include: [{
-                                model: Cinema,
-                                as: 'cinema',
-                                attributes: ['id', 'nom', 'adresse']
-                            }]
-                        }
-                    ]
-                },
-                {
-                    model: User,
-                    as: 'utilisateur',
-                    attributes: ['id', 'nom', 'prenom', 'email']
-                }
-            ]
+             },
+         
+                 include: [{
+                model: Seance,
+                as: 'seance', // ← Utilisez le bon alias
+                attributes: ['id', 'date_seance', 'heure_debut']
+            }]
         });
-
+                            
         if (!reservation) {
             console.log(' Reservation not found for ID:', reservationId);
             return res.status(404).json({
@@ -62,57 +41,27 @@ export const getReservationQRCode = async (req, res) => {
             });
         }
 
-        console.log(' Reservation found:', reservation.id);
-        console.log('Seance:', reservation.seance?.id);
-        console.log('Film:', reservation.seance?.film?.titre);
-
-        // 2. Vérifier les données pour le debugging
-        if (!reservation.seance) {
-            console.warn(' No seance associated with reservation');
-        }
+        console.log(' Reservation found:', 
+            {
+            id: reservation.id,
+            seanceId: reservation.seance_id,
+            hasSeance: !!reservation.seance
+        });
+        
 
         // 3. Créer les données pour le QR code
         const qrData = {
             type: 'CINEPHORIA_TICKET',
-            reservationId: reservation.id,
-            reference: reservation.reference || `RES-${reservation.id}`,
-            userId: reservation.utilisateur_id,
-            userNom: reservation.utilisateur?.nom || '',
-            userPrenom: reservation.utilisateur?.prenom || '',
-            
-            // Informations séance
+             reservationId: reservation.id,
             seanceId: reservation.seance_id,
-            filmId: reservation.seance?.film?.id,
-            filmTitre: reservation.seance?.film?.titre || 'Film inconnu',
-            filmDuree: reservation.seance?.film?.duree,
-            
-            // Informations cinéma
-            cinemaId: reservation.seance?.salle?.cinema?.id,
-            cinemaNom: reservation.seance?.salle?.cinema?.nom || 'Cinéma inconnu',
-            cinemaAdresse: reservation.seance?.salle?.cinema?.adresse,
-            salleId: reservation.seance?.salle_id,
-            salleNom: reservation.seance?.salle?.nom || '',
-            
-            // Dates
-            dateReservation: reservation.date_reservation || reservation.createdAt,
-            dateSeance: reservation.seance?.date_seance,
-            heureSeance: reservation.seance?.heure_debut,
-            
-            // Places et prix
-            nbPlaces: reservation.nbPlaces || 1,
-            montantTotal: reservation.montantTotal || 0,
-            
-            // Validation
+            userId: reservation.utilisateur_id || userId, // ← Utilisez celui de la DB ou le test
             validationCode: generateValidationCode(),
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            seanceDate: reservation.seance?.date_seance,
+        
         };
-
-        console.log('📦 QR Data prepared:', {
-            reservationId: qrData.reservationId,
-            film: qrData.filmTitre,
-            cinema: qrData.cinemaNom,
-            date: qrData.dateSeance
-        });
+  console.log('📦 QR Data:', qrData);
+        
 
         // 4. Générer le QR code
         let qrCodeBase64;
