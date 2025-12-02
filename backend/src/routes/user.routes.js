@@ -14,12 +14,23 @@ import { getProfile } from '../controllers/user/profil.controller.js';
 import { getReservationQRCode } from '../controllers/user/qrcode.controller.js'
 
 // Appliquer authenticate + isClient + requireConfirmedAccount à TOUTES les routes
-router.use(authenticate);
-router.use(isClient);
-router.use(requireConfirmedAccount);
+// router.use(authenticate);
+// router.use(isClient);
+// router.use(requireConfirmedAccount);
 
-
-
+router.use((req, res, next) => {
+    console.log('🔄 User route accessed:', req.path);
+    console.log('🔍 Headers:', req.headers);
+    next(); // Passe directement sans authentification
+});
+router.get("/public/reservations/:id/qrcode", (req, res) => {
+    console.log('🎯 PUBLIC QR CODE ROUTE HIT');
+    console.log('📦 ID:', req.params.id);
+    console.log('🔗 Full URL:', req.originalUrl);
+    
+    // Appelez le vrai contrôleur
+    return getReservationQRCode(req, res);
+});
 
 /**
  * @swagger
