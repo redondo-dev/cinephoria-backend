@@ -148,7 +148,7 @@ app.use('/contact', contactLimiter, contactRoutes);
 
 app.use('/api/reservations', authenticate, reservationRoutes);
 app.use('/api/admin', authenticate,isAdmin, adminRoutes);
-app.use('/api/user', authenticate,isClient ,userRoutes);
+app.use('/api/user' ,userRoutes);
 app.use('/api/employee', authenticate,isAdminOrEmploye ,employeeRoutes);
 
 
