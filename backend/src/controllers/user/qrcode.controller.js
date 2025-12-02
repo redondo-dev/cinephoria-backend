@@ -6,6 +6,11 @@ import { Reservation, Seance } from '../../models/index.js';
  * GET /api/user/reservations/:id/qrcode
  */
 export const getReservationQRCode = async (req, res) => {
+
+    console.log('=== QR CODE CONTROLLER CALLED ===');
+    console.log('Reservation ID:', req.params.id);
+    console.log('Full URL:', req.originalUrl);
+    console.log('Method:', req.method);
   try {
     const reservationId = parseInt(req.params.id);
     const userId = req.user.id; // Récupéré du middleware authenticate
@@ -43,6 +48,8 @@ export const getReservationQRCode = async (req, res) => {
 
     // 3. Générer le QR code en base64
     const qrCodeBase64 = await QRCode.toDataURL(JSON.stringify(qrData));
+       
+        console.log('QR Code generated:', qrData);
 
     // 4. Retourner la réponse
     res.json({
