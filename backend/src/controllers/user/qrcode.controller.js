@@ -63,46 +63,44 @@ export const getReservationQRCode = async (req, res) => {
   console.log('📦 QR Data:', qrData);
         
 
-        // 4. Générer le QR code
+    // 3. Générer le QR code en base64
         let qrCodeBase64;
         try {
             qrCodeBase64 = await QRCode.toDataURL(JSON.stringify(qrData));
-            console.log(' QR Code generated successfully');
+            console.log('✅ QR Code generated successfully');
         } catch (qrError) {
-            console.error(' QR Code generation error:', qrError);
-            // Fallback: utiliser un service externe
+            console.error('❌ QR Code generation failed, using external service:', qrError);
+            // Fallback vers service externe
             const qrText = JSON.stringify(qrData);
             qrCodeBase64 = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrText)}`;
         }
 
-        // 5. Retourner la réponse
+        // 4. Retourner la réponse
         res.status(200).json({
             success: true,
             qrCode: qrCodeBase64,
-            qrData: qrData, // Pour debug frontend
             reservation: {
                 id: reservation.id,
-                reference: reservation.reference,
-                dateReservation: reservation.date_reservation,
-                nbPlaces: reservation.nbPlaces,
-                montantTotal: reservation.montantTotal,
-                statut: reservation.statut,
-                film: reservation.seance?.film?.titre,
-                cinema: reservation.seance?.salle?.cinema?.nom,
-                dateSeance: reservation.seance?.date_seance,
-                heureSeance: reservation.seance?.heure_debut,
-                salle: reservation.seance?.salle?.nom
+                seanceId: reservation.seance_id,
+                date: reservation.date_reservation || reservation.createdAt,
+                seats: reservation.nbPlaces || reservation.sieges,
+                seance: reservation.seance
+            },
+            debug: {
+                userFromReq: req.user,
+                userIdUsed: userId
             }
         });
 
     } catch (error) {
         console.error('🔥 Erreur génération QR code:', error);
-        console.error('Stack trace:', error.stack);
+        console.error('Stack:', error.stack);
         
         res.status(500).json({
             success: false,
             message: 'Erreur serveur lors de la génération du QR code',
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+            error: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     }
 };
@@ -113,8 +111,8 @@ export const getReservationQRCode = async (req, res) => {
 function generateValidationCode() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let code = '';
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 8; i++) {
         code += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    return `CINE-${code}`;
-}
+    return code;
+}     
