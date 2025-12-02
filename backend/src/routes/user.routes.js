@@ -11,6 +11,7 @@ import { getMesCommandes, getCommandeById } from '../controllers/user/commande.c
 import { createAvis, getMesAvis, getFilmsANoter ,getAvisUtilisateur,
   modifierAvis} from '../controllers/user/avis.controller.js';
 import { getProfile } from '../controllers/user/profil.controller.js';
+import { getReservationQRCode } from '../controllers/user/qrcode.controller.js'
 
 // Appliquer authenticate + isClient + requireConfirmedAccount à TOUTES les routes
 router.use(authenticate);
@@ -129,6 +130,8 @@ router.get("/commandes/:id", getCommandeById);
  *         description: Commande non trouvée
  */
 router.get("/reservations/:id", getCommandeById);
+
+router.get("/reservations/:id/qrcode", getReservationQRCode);
 
 /**
  * @swagger
