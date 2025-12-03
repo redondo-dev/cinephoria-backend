@@ -140,9 +140,10 @@ router.get("/commandes/:id", getCommandeById);
  *       404:
  *         description: Commande non trouvée
  */
+router.get("/reservations/:id/qrcode", getReservationQRCode);
 router.get("/reservations/:id", getCommandeById);
 
-router.get("/reservations/:id/qrcode", getReservationQRCode);
+
 
 /**
  * @swagger
