@@ -29,7 +29,7 @@ export const getReservationQRCode = async (req, res) => {
                  include: [{
                 model: Seance,
                 as: 'seance', // ← Utilisez le bon alias
-                attributes: ['id', 'date_seance', 'date_heure_debut,date_heure_fin']
+                attributes: ['id', 'date_seance', 'date_heure_debut','date_heure_fin']
             }]
         });
                             
