@@ -29,7 +29,7 @@ export const getReservationQRCode = async (req, res) => {
                  include: [{
                 model: Seance,
                 as: 'seance', // ← Utilisez le bon alias
-                attributes: ['id', 'date_seance', 'heure_debut']
+                attributes: ['id', 'date_seance', 'date_heure_debut,date_heure_fin']
             }]
         });
                             
@@ -45,7 +45,9 @@ export const getReservationQRCode = async (req, res) => {
             {
             id: reservation.id,
             seanceId: reservation.seance_id,
-            hasSeance: !!reservation.seance
+            hasSeance: !!reservation.seance,
+             seanceDate: reservation.seance?.date_seance,
+            seanceTime: reservation.seance?.date_heure_debut
         });
         
 
@@ -54,11 +56,12 @@ export const getReservationQRCode = async (req, res) => {
             type: 'CINEPHORIA_TICKET',
              reservationId: reservation.id,
             seanceId: reservation.seance_id,
-            userId: reservation.utilisateur_id || userId, // ← Utilisez celui de la DB ou le test
+            userId: reservation.utilisateur_id || userId, 
             validationCode: generateValidationCode(),
             timestamp: new Date().toISOString(),
-            seanceDate: reservation.seance?.date_seance,
-        
+           seanceDate: reservation.seance?.date_seance,
+            seanceStartTime: reservation.seance?.date_heure_debut,
+            seanceEndTime: reservation.seance?.date_heure_fin
         };
   console.log('📦 QR Data:', qrData);
         
@@ -67,9 +70,9 @@ export const getReservationQRCode = async (req, res) => {
         let qrCodeBase64;
         try {
             qrCodeBase64 = await QRCode.toDataURL(JSON.stringify(qrData));
-            console.log('✅ QR Code generated successfully');
+            console.log('QR Code generated successfully');
         } catch (qrError) {
-            console.error('❌ QR Code generation failed, using external service:', qrError);
+            console.error('QR Code generation failed, using external service:', qrError);
             // Fallback vers service externe
             const qrText = JSON.stringify(qrData);
             qrCodeBase64 = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrText)}`;
@@ -81,21 +84,30 @@ export const getReservationQRCode = async (req, res) => {
             qrCode: qrCodeBase64,
             reservation: {
                 id: reservation.id,
+                userId: reservation.utilisateur_id,
                 seanceId: reservation.seance_id,
-                date: reservation.date_reservation || reservation.createdAt,
-                seats: reservation.nbPlaces || reservation.sieges,
-                seance: reservation.seance
+                seats: reservation.nb_places || 1,
+                amount: reservation.prix_unitaire || 0,
+                status: reservation.statut_reservation || 'confirmée',
+                reservationDate: reservation.date_creation,
+                seance: {
+                    date: reservation.seance?.date_seance,
+                    startTime: reservation.seance?.date_heure_debut,
+                    endTime: reservation.seance?.date_heure_fin
+                }
             },
             debug: {
-                userFromReq: req.user,
-                userIdUsed: userId
+                 note: 'Colonne correcte: date_heure_debut au lieu de heure_debut'
             }
         });
 
     } catch (error) {
-        console.error('🔥 Erreur génération QR code:', error);
-        console.error('Stack:', error.stack);
-        
+        console.error(' Erreur génération QR code:', error);
+        console.error('Error details:', {
+            name: error.name,
+            sql: error.sql,
+            parent: error.parent?.message
+        });
         res.status(500).json({
             success: false,
             message: 'Erreur serveur lors de la génération du QR code',
@@ -114,5 +126,5 @@ function generateValidationCode() {
     for (let i = 0; i < 8; i++) {
         code += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    return code;
+     return `CINE-${code}`;
 }     
