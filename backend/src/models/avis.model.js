@@ -57,14 +57,17 @@ const Avis = sequelize.define('Avis', {
     defaultValue: 'en_attente',
     comment: 'Statut de modération de l\'avis'
   }, 
-  motif_refus: {
+
+  validated_by: {
     type: DataTypes.INTEGER,
     allowNull: true,
-    references: {
-      model: 'utilisateur',
-      key: 'id'
-    },
-    comment: 'ID de l\'employé qui a validé/rejeté l\'avis'
+    references: { model: 'utilisateur', key: 'id' },
+    comment: 'Employé qui valide ou rejette l’avis'
+  },
+  motif_refus: {
+    type: DataTypes.TXT,
+    allowNull: true,
+    comment: 'Motif écrit lors du rejet'
   },
   date_validation: {
     type: DataTypes.DATE,
