@@ -65,7 +65,7 @@ const Avis = sequelize.define('Avis', {
     comment: 'Employé qui valide ou rejette l’avis'
   },
   motif_refus: {
-    type: DataTypes.TXT,
+    type: DataTypes.TEXT,
     allowNull: true,
     comment: 'Motif écrit lors du rejet'
   },
