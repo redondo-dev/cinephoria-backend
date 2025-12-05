@@ -12,38 +12,42 @@ export const getMesCommandes = async (req, res) => {
     console.log('🎯 getMesCommandes appelé pour userId:', req.user?.id);
   try {
     const userId = req.user.id;
+    console.log('ID utilisateur depuis le token :', req.user.id);
+
 
     const reservations = await Reservation.findAll({
+      
       where: { utilisateur_id: userId },
-      include: [
-        {
-          model: Seance,
-          as: 'seance',
-          attributes: ['id', 'date_seance','date_heure_debut', 'date_heure_fin'],
-          include: [
-            {
-              model: Film,
-              as: 'film',
-              attributes: ['id', 'titre', 'affiche', 'duree'],
-            },
-            {
-              model: Salle,
-              as: 'salle',
-              attributes: ['id', 'nom_salle'],
-              include: [
-                {
-                  model: Cinema,
-                  as: 'cinema',
-                  attributes: ['id', 'nom', 'ville'],
-                },
-              ],
-            },
-          ],
-        },
-      ],
+      // include: [
+      //   {
+      //     model: Seance,
+      //     as: 'seance',
+      //     attributes: ['id', 'date_seance','date_heure_debut', 'date_heure_fin'],
+      //     include: [
+      //       {
+      //         model: Film,
+      //         as: 'film',
+      //         attributes: ['id', 'titre', 'affiche', 'duree'],
+      //       },
+      //       {
+      //         model: Salle,
+      //         as: 'salle',
+      //         attributes: ['id', 'nom_salle'],
+      //         include: [
+      //           {
+      //             model: Cinema,
+      //             as: 'cinema',
+      //             attributes: ['id', 'nom', 'ville'],
+      //           },
+      //         ],
+      //       },
+      //     ],
+      //   },
+      // ],
       order: [['date_creation', 'DESC']],
+      
     });
-
+console.log('Réservations récupérées :', reservations);
     res.status(200).json({
       success: true,
       count: reservations.length,
