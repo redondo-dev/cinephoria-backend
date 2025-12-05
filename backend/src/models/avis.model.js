@@ -62,7 +62,7 @@ const Avis = sequelize.define('Avis', {
     type: DataTypes.INTEGER,
     allowNull: true,
     references: { model: 'utilisateur', key: 'id' },
-    comment: 'Employé qui valide ou rejette l’avis'
+    comment: 'Employé qui valide ou rejette l\'avis'
   },
   motif_refus: {
     type: DataTypes.TEXT,
