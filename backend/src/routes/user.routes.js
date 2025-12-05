@@ -14,9 +14,9 @@ import { getProfile } from '../controllers/user/profil.controller.js';
 import { getReservationQRCode } from '../controllers/user/qrcode.controller.js'
 
 // Appliquer authenticate + isClient + requireConfirmedAccount à TOUTES les routes
-// router.use(authenticate);
-// router.use(isClient);
-// router.use(requireConfirmedAccount);
+router.use(authenticate);
+router.use(isClient);
+router.use(requireConfirmedAccount);
 
 router.use((req, res, next) => {
     console.log('🔄 User route accessed:', req.path);
