@@ -18,6 +18,8 @@ export const getMesCommandes = async (req, res) => {
     const reservations = await Reservation.findAll({
       
       where: { utilisateur_id: userId },
+      raw:false,
+      nest:true,
        include: [
         {
           model: Seance,
