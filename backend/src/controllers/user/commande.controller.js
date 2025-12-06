@@ -19,7 +19,7 @@ export const getMesCommandes = async (req, res) => {
       
       where: { utilisateur_id: userId },
        include: [
-        {git add 
+        {
           model: Seance,
           as: 'seance',
           attributes: ['id', 'date_seance','date_heure_debut', 'date_heure_fin'],
