@@ -18,32 +18,32 @@ export const getMesCommandes = async (req, res) => {
     const reservations = await Reservation.findAll({
       
       where: { utilisateur_id: userId },
-      // include: [
-      //   {
-      //     model: Seance,
-      //     as: 'seance',
-      //     attributes: ['id', 'date_seance','date_heure_debut', 'date_heure_fin'],
-      //     include: [
-      //       {
-      //         model: Film,
-      //         as: 'film',
-      //         attributes: ['id', 'titre', 'affiche', 'duree'],
-      //       },
-      //       {
-      //         model: Salle,
-      //         as: 'salle',
-      //         attributes: ['id', 'nom_salle'],
-      //         include: [
-      //           {
-      //             model: Cinema,
-      //             as: 'cinema',
-      //             attributes: ['id', 'nom', 'ville'],
-      //           },
-      //         ],
-      //       },
-      //     ],
-      //   },
-      // ],
+       include: [
+        {git add 
+          model: Seance,
+          as: 'seance',
+          attributes: ['id', 'date_seance','date_heure_debut', 'date_heure_fin'],
+          include: [
+            {
+              model: Film,
+              as: 'film',
+              attributes: ['id', 'titre', 'affiche', 'duree'],
+            },
+            {
+              model: Salle,
+              as: 'salle',
+              attributes: ['id', 'nom_salle'],
+              include: [
+                {
+                  model: Cinema,
+                  as: 'cinema',
+                  attributes: ['id', 'nom', 'ville'],
+                },
+              ],
+            },
+          ],
+        },
+      ],
       order: [['date_creation', 'DESC']],
       
     });
