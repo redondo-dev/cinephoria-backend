@@ -71,6 +71,8 @@ export const getCommandeById = async (req, res) => {
 
     const reservation = await Reservation.findOne({
       where: { id: reservationId, utilisateur_id: userId },
+       raw: false,
+        nest: true,
       include: [
         {
           model: Seance,
