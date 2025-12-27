@@ -13,9 +13,7 @@ RUN npm ci
 
 # Copie du code source
 COPY . .
-# Construction de l'application
 
-RUN npm run build
 
 # Nettoyage des devDependencies
 RUN npm prune --production
