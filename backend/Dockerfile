@@ -2,7 +2,7 @@
 # Multi-stage build pour optimiser la taille de l'image finale
 
 # Stage 1: Build
-FROM node:20-alpine/node AS builder
+FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Copie des fichiers de dépendances 
@@ -31,8 +31,8 @@ WORKDIR /app
 
 # Copie uniquement les fichiers nécessaires depuis le builder
 COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nodejs:nodejs /app/package*.json ./
+COPY --chown=nodejs:nodejs ./src ./src
 
 # Passage à l'utilisateur non-root
 USER nodejs
@@ -45,4 +45,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=40s \
   CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
   # Commande de démarrage
-CMD ["node", "dist/server.js"]
+CMD ["node", "src/server.js"]
