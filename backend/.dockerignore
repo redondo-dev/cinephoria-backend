@@ -1,13 +1,15 @@
-
+---
+## .dockerignore
+```
 node_modules
+npm-debug.log
 dist
 .git
-.angular
-*.log
+.gitignore
 .env
 .env.*
-coverage
+*.md
 .vscode
 .idea
-.DS_Store
-npm-debug.log*
+coverage
+*.log
