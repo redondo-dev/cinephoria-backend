@@ -1,0 +1,19 @@
+# cinephoria-backend/Dockerfile.dev
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Installation de nodemon pour le hot-reload
+RUN npm install -g nodemon
+
+# Copie des fichiers de dépendances
+COPY package*.json ./
+
+# Installation de toutes les dépendances (dev incluses)
+RUN npm install
+
+# Exposition du port
+EXPOSE 3000
+
+# Le code source sera monté via volume
+CMD ["npm", "run", "dev"]
