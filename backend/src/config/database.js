@@ -22,12 +22,12 @@ const sequelize = new Sequelize(
     // logging: process.env.NODE_ENV === 'development' ? console.log : false,      
     // Ajout pour SSL
   dialectOptions: {
-      ssl: process.env.NODE_ENV === 'production' ? {
-        require: true,
-        rejectUnauthorized: false, // nécessaire pour Render
-      }:false
-    },
-  
+        ssl: process.env.NODE_ENV === 'production' ? {
+           require: true,
+           rejectUnauthorized: false // nécessaire pour Render
+        } :false 
+      },
+     
  // Options supplémentaires recommandées
     pool: {
       max: 5,
