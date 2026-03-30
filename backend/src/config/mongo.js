@@ -23,9 +23,9 @@ export const connectMongo = async () => {
     console.log(`État: ${mongoose.connection.readyState}`); // Doit être 1
     
  if (process.env.NODE_ENV === "production") {
-      console.log("🚀 MongoDB connecté **en PRODUCTION**");
+      console.log("MongoDB connecté **en PRODUCTION**");
     } else {
-      console.log("🧪 MongoDB connecté en MODE DEV");
+      console.log("MongoDB connecté en MODE DEV");
     }
 
 
@@ -36,7 +36,7 @@ export const connectMongo = async () => {
     });
     
     mongoose.connection.on('disconnected', () => {
-      console.warn('⚠️ MongoDB déconnecté');
+      console.warn(' MongoDB déconnecté');
     });
     
   } catch (error) {
