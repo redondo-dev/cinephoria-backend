@@ -48,11 +48,11 @@ app.use(helmet({
 
 const allowedOrigins = [
   // Vos domaines Vercel (ajoutez TOUS vos domaines)
-  process.env.FRONTEND_URL,
-  'https://cinephoria-alpha.vercel.app',
-  'https://cinephoria-frontend.vercel.app',
-  'https://frontend-eight-xi-87.vercel.app',
-  'https://frontend-fftl68tcd-riads-projects-4e98048c.vercel.app',
+  // process.env.FRONTEND_URL,
+  // 'https://cinephoria-alpha.vercel.app',
+  // 'https://cinephoria-frontend.vercel.app',
+  // 'https://frontend-eight-xi-87.vercel.app',
+  // 'https://frontend-fftl68tcd-riads-projects-4e98048c.vercel.app',
   
   // Pattern pour tous les déploiements Vercel (preview + production)
   /^https:\/\/.*\.vercel\.app$/,
