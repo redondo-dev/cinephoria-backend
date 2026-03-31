@@ -79,3 +79,9 @@ Thumbs.db
 *.tmp
 *.bak
 
+
+# Flyway ignores
+*.user.toml
+*.artifact
+report.html
+report.json
