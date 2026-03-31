@@ -60,7 +60,7 @@ const userRole = user.roleDetails?.nom_role?.toUpperCase(); // "admin" → "ADMI
         role: userRole
       },
       JWT_SECRET,
-      { expiresIn: "5h" }
+      { expiresIn: "1h" }
     );
 
     // Cookie HttpOnly

@@ -31,7 +31,7 @@ import { authenticate, isAdmin, isClient, isAdminOrEmploye } from "../src/middle
 
 
 // ----------------------------
-// 🚀 INITIALISATION APP
+//  INITIALISATION APP
 // ----------------------------
 
 const app = express();
@@ -54,7 +54,7 @@ const allowedOrigins = [
   'https://cinephoria-n20fcvfc4-riads-projects-4e98048c.vercel.app',
   'https://frontend-1f91ww1hw-riads-projects-4e98048c.vercel.app',
   'https://cinephoria-k61o0090a-riads-projects-4e98048c.vercel.app',
-  'https://cinephoria-evpf82dkl-riads-projects-4e98048c.vercel.app',
+  'frontend-fftl68tcd-riads-projects-4e98048c.vercel.app',
   'https://frontend-fftl68tcd-riads-projects-4e98048c.vercel.app',
 
   
@@ -74,7 +74,7 @@ app.use(cors({
   origin: function (origin, callback) {
     // Autoriser les requêtes sans origin (Postman)
     if (!origin) {
-      console.log('✅ [CORS] Requête sans origin (outil/serveur)');
+      console.log('[CORS] Requête sans origin (outil/serveur)');
       return callback(null, true);
     }
     
@@ -88,10 +88,10 @@ app.use(cors({
     });
     
     if (isAllowed) {
-      console.log('✅ [CORS] Origine autorisée:', origin);
+      console.log(' [CORS] Origine autorisée:', origin);
       callback(null, true);
     } else {
-      console.log('❌ [CORS] Origine refusée:', origin);
+      console.log(' [CORS] Origine refusée:', origin);
       callback(new Error(`CORS: Origine ${origin} non autorisée`));
     }
   },
@@ -133,7 +133,7 @@ const contactLimiter = rateLimit({
 });
 
 app.use((req, res, next) => {
-  console.log(`📥 ${req.method} ${req.url}`);
+  console.log(` ${req.method} ${req.url}`);
   next();
 });
 
@@ -163,8 +163,4 @@ app.use('/api/protected', authenticate, protectedRoutes);
 
 setupSwagger(app);
 
-
-// ----------------------------
-// 📤 EXPORT SERVEUR
-// ----------------------------
 export default app;
