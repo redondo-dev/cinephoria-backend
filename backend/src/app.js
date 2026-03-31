@@ -51,9 +51,7 @@ const allowedOrigins = [
   process.env.FRONTEND_URL,
   'https://cinephoria-alpha.vercel.app',
   'https://cinephoria-frontend.vercel.app',
-  'https://cinephoria-n20fcvfc4-riads-projects-4e98048c.vercel.app',
-  'https://frontend-1f91ww1hw-riads-projects-4e98048c.vercel.app',
-  'https://cinephoria-k61o0090a-riads-projects-4e98048c.vercel.app',
+  'https://frontend-eight-xi-87.vercel.app',
   'https://frontend-fftl68tcd-riads-projects-4e98048c.vercel.app',
   
   // Pattern pour tous les déploiements Vercel (preview + production)
