@@ -114,7 +114,7 @@ export const getSeancesByFilm = async (req, res) => {
         { 
           model: Salle,
           as: 'salle',
-          attributes: ['id', 'nom_salle', 'capacite', 'qualite_projection', 'cinema_id'],
+          attributes: ['id', 'nom_salle', 'nombrePlaces', 'qualiteProjection', 'cinema_id'],
           where: { cinema_id: cinemaId },
           include: [
             {
@@ -151,7 +151,7 @@ export const getSeancesByFilm = async (req, res) => {
           : 0;
         
         const salle = seance.salle;
-        const capaciteSalle = salle?.capacite || 0;
+        const capaciteSalle = salle?.nombrePlaces || 0;
         const placesDisponibles = capaciteSalle - placesReservees;
 
         // FIX CRITIQUE: Vérifier que la séance est future (déjà filtré par la requête, mais double sécurité)
@@ -166,7 +166,7 @@ export const getSeancesByFilm = async (req, res) => {
             dateHeureFin: seance.dateHeureFin,
             salle: {
               id: salle.id,
-              nom_salle: salle.nom_salle,
+              nom_salle: salle.nom,
               capacite: capaciteSalle,
               qualite_projection: salle.qualite_projection
             },
