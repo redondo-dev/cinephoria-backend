@@ -47,7 +47,7 @@ export const getFilmsByCinema = async (req, res) => {
           as: 'seances',
           required: false,
           where: {
-            dateHeureDebut: {
+            date_heure_debut: {
               [Op.gte]: new Date(), // ✅ à partir d'aujourd'hui
             },
           },
@@ -108,7 +108,7 @@ export const getSeancesByFilm = async (req, res) => {
     const seances = await Seance.findAll({
       where: { 
         film_id:parseInt(filmId), 
-        dateHeureDebut: { [Op.gte]: new Date() } // ✅ Filtre les séances futures uniquement
+        date_heure_debut: { [Op.gte]: new Date() } // ✅ Filtre les séances futures uniquement
       },
       include: [
         { 
@@ -131,8 +131,8 @@ export const getSeancesByFilm = async (req, res) => {
           required: false // ✅ LEFT JOIN pour avoir les séances sans réservations
         }
       ],
-      attributes: ['id', 'date_seance', 'dateHeureDebut', 'dateHeureFin', 'filmId'],
-      order: [['dateHeureDebut', 'ASC']]
+      attributes: ['id', 'date_seance', 'date_heure_debut', 'date_heure_fin', 'film_id'],
+      order: [['date_heure_debut', 'ASC']]
     });
 
     console.log(`📅 ${seances.length} séances trouvées`);
@@ -155,15 +155,15 @@ export const getSeancesByFilm = async (req, res) => {
         const placesDisponibles = capaciteSalle - placesReservees;
 
         // FIX CRITIQUE: Vérifier que la séance est future (déjà filtré par la requête, mais double sécurité)
-        const isFuture = new Date(seance.dateHeureDebut) >= new Date();
+        const isFuture = new Date(seance.date_heure_debut) >= new Date();
         console.log(`Séance ${seance.id}: capacité=${capaciteSalle}, réservées=${placesReservees}, dispo=${placesDisponibles}, future=${isFuture}`);
         // Filtrer: places suffisantes + capacité valide
         if (placesDisponibles >= nbPersonnes && capaciteSalle > 0 && isFuture) {
           return {
             id: seance.id,
             date_seance: seance.date_seance,
-            dateHeureDebut: seance.dateHeureDebut,
-            dateHeureFin: seance.dateHeureFin,
+            dateHeureDebut: seance.date_heure_debut,
+            dateHeureFin: seance.date_heure_fin,
             salle: {
               id: salle.id,
               nom_salle: salle.nom_salle,
