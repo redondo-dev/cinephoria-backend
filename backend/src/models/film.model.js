@@ -29,23 +29,9 @@ const Film = sequelize.define('Film', {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
-  note_moyenne: {
-    type: DataTypes.FLOAT,
-    defaultValue: 0,
+
   },
-  nb_avis: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0,
-  },
-  genre_id: {
-    type: DataTypes.INTEGER,
-    references: {
-      model: 'genre',
-      key: 'id',
-    },
-  
-  },
-}, {
+ {
   tableName: 'film',
   timestamps: false, 
 });

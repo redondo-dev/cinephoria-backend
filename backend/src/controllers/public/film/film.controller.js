@@ -1,6 +1,5 @@
 // controllers/public/film.controller.js
 import Film from '../../../models/film.model.js';
-import Genre from '../../../models/genre.model.js';
 import Seance from '../../../models/seance.model.js';
 import Salle from '../../../models/salle.model.js'; 
 import Cinema from '../../../models/cinema.model.js';
@@ -10,16 +9,12 @@ export const getAllFilmsPublic = async (req, res) => {
     const films = await Film.findAll({
       order: [["date_ajout", "DESC"]],
        include: [
-        {
-          model: Genre,
-          as: "genre", // alias défini dans Film.belongsTo()
-          attributes: ["id", "nom"] 
-        },
+      
     {
       model: Seance,
       as: 'seances',
       
-    
+     attributes: ['id', 'filmId', 'salleId', 'dateHeureDebut', 'dateHeureFin'],
       include: [
         {
           model: Salle,

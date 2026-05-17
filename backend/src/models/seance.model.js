@@ -12,10 +12,7 @@ const Seance = sequelize.define("Seance", {
     primaryKey: true,
     autoIncrement: true
   },
-  date_seance: {
-    type: DataTypes.DATEONLY,
-    allowNull: false,
-  },
+
  filmId: {
     type: DataTypes.INTEGER,
     field:'film_id',

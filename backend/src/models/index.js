@@ -20,9 +20,6 @@ import Tarif from './tarif.model.js';
 Film.hasMany(Seance, { foreignKey: 'film_id', as: 'seances' });
 Seance.belongsTo(Film, { foreignKey: 'film_id', as: 'film' });
 
-// Film -> Genre (1 film appartient à 1 genre)
-Film.belongsTo(Genre, { foreignKey: 'genre_id', as: 'genre' });
-Genre.hasMany(Film, { foreignKey: 'genre_id', as: 'films' });
 
 /* ============================================================
    CINEMA / SALLE / SIEGES
