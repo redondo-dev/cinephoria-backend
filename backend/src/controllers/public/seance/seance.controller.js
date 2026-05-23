@@ -13,52 +13,38 @@ import { Op } from 'sequelize';
 export const getAvailableDates = async (req, res) => {
   try {
     const seances = await Seance.findAll({
-      attributes: ['date_seance'],
+      attributes: ['dateHeureDebut'],
       where: {
-        date_seance: {
+        dateHeureDebut: {
           [Op.gte]: new Date() 
         }
       },
-      group: ['date_seance'],
-      order: [['date_seance', 'ASC']],
+      group: ['dateHeureDebut'],
+      order: [['dateHeureDebut', 'ASC']],
       raw: true
     });
     console.log('Séances trouvées:', seances); // Debug
 
  // Si pas de séances, retourner des dates de test
 if (seances.length === 0) {
-  const testDates = [
-    '2024-01-15',
-    '2024-01-16', 
-    '2024-01-17',
-    '2024-01-18'
-  ];
-  console.log('Retour des dates de test:', testDates);
-  return res.status(200).json(testDates);
+ 
+  return res.status(200).json([]);
 }
  // Formater et dédupliquer les dates
-const dateSet = new Set();
-seances.forEach(s => {
-  if (s.date_seance) {
-    const date = new Date(s.date_seance);
-    const formattedDate = date.toISOString().split('T')[0];
-    dateSet.add(formattedDate);
-  }
-});
-const dates = Array.from(dateSet).sort();
-    console.log('Dates disponibles:', dates); // Pour debug
-
-    
-res.status(200).json(dates);
-  } catch (error) {
-    console.error('Erreur getAvailableDates:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Erreur lors de la récupération des dates',
-      error: error.message
+   const dateSet = new Set();
+    seances.forEach(s => {
+      if (s.date_heure_debut) {
+        dateSet.add(new Date(s.date_heure_debut).toISOString().split('T')[0]);
+      }
     });
+
+     res.status(200).json(Array.from(dateSet).sort());
+  } catch (error) {
+    console.error('Erreur getAvailableDates:', error.message);
+    res.status(500).json({ success: false, message: 'Erreur dates', error: error.message });
   }
 };
+  
 
 /**
  * Récupère les séances d'un film spécifique
