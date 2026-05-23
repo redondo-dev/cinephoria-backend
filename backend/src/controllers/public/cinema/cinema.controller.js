@@ -1,7 +1,7 @@
-// src/controllers/public/cinema.controller.js
-import { Cinema, Film, Seance, Genre, Salle, Siege, Reservation } from "../../../models/index.js";
+// src/controllers/public/cinema/cinema.controller.js
+import { Cinema, Film, Seance, Salle, Reservation } from "../../../models/index.js";
+// ← Siege et sequelize supprimés (non utilisés)
 import { Op } from "sequelize";
-import sequelize from "../../../config/database.js";
 
 // Récupérer tous les cinémas
 export const getCinemas = async (req, res) => {
@@ -21,100 +21,77 @@ export const getCinemas = async (req, res) => {
 export const getFilmsByCinema = async (req, res) => {
   try {
     const { id } = req.params;
-
     console.log(`Récupération des films pour le cinéma ${id}`);
 
-    // Vérifier que le cinéma existe
     const cinema = await Cinema.findByPk(id);
     if (!cinema) {
-      console.log(`Cinéma ${id} non trouvé`);
       return res.status(404).json({ message: "Cinéma non trouvé" });
     }
 
-    console.log(`Cinéma trouvé: ${cinema.nom}`);
-
-    // Requête Sequelize pour récupérer les films avec séances dans ce cinéma
     const films = await Film.findAll({
       attributes: ['id', 'titre', 'duree', 'affiche', 'description'],
       include: [
         {
-          model: Genre,
-          as: 'genre',
-          attributes: ['id', 'nom'],
-        },
-        {
           model: Seance,
           as: 'seances',
-          required: false,
+          required: true,
           where: {
-            dateHeureDebut: {
-              [Op.gte]: new Date(), // ✅ à partir d'aujourd'hui
-            },
+            dateHeureDebut: { [Op.gte]: new Date() }
           },
+          attributes: ['id', 'dateHeureDebut', 'dateHeureFin'], // ✅ hors du where
           include: [
             {
               model: Salle,
               as: 'salle',
               required: true,
+              attributes: ['id', 'nom', 'nombrePlaces', 'qualiteProjection'],
               include: [
                 {
                   model: Cinema,
                   as: 'cinema',
-                  where: { id }, // filtrage par cinéma
-                },
-              ],
-            },
-          ],
-        },
+                  where: { id },
+                  attributes: ['id', 'nom', 'ville']
+                }
+              ]
+            }
+          ]
+        }
       ],
-      distinct: true,
-      raw: false, 
-      nest: true, 
+      distinct: true
     });
 
     console.log(`✅ ${films.length} films trouvés`);
     res.status(200).json(films);
 
   } catch (error) {
-    console.error("❌ Erreur getFilmsByCinema:", error);
-    console.error("Stack trace:", error.stack);
+    console.error("❌ Erreur getFilmsByCinema:", error.message);
     res.status(500).json({
       message: "Erreur lors de la récupération des films",
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      error: error.message
     });
   }
 };
 
-// Récupérer les séances d'un film dans un cinéma (OPTIMISÉ)
+// Récupérer les séances d'un film dans un cinéma
 export const getSeancesByFilm = async (req, res) => {
   try {
     const { cinemaId, filmId } = req.params;
     const nbPersonnes = parseInt(req.query.nbPersonnes) || 1;
 
     if (nbPersonnes < 1) {
-      return res.status(400).json({ 
-        message: "Le nombre de personnes doit être au moins 1" 
-      });
+      return res.status(400).json({ message: "Le nombre de personnes doit être au moins 1" });
     }
 
-    console.log('🔍 Paramètres reçus:', { cinemaId, filmId, nbPersonnes });
-    console.log('🔍 Recherche avec:', {
-  film_id: parseInt(filmId),
-  cinema_id: parseInt(cinemaId),
-  nbPersonnes
-});
-
-    // ✅ OPTIMISATION: Une seule requête avec tous les includes nécessaires
     const seances = await Seance.findAll({
-      where: { 
-         filmId:parseInt(filmId), 
-        dateHeureDebut: { [Op.gte]: new Date() } // ✅ Filtre les séances futures uniquement
+      where: {
+        filmId: parseInt(filmId),
+        dateHeureDebut: { [Op.gte]: new Date() }
       },
       include: [
-        { 
+        {
           model: Salle,
           as: 'salle',
-          attributes: ['id', 'nom_salle', 'nombrePlaces', 'qualiteProjection', 'cinema_id'],
+          attributes: ['id', ['nom_salle', 'nom'], ['capacite', 'nombrePlaces'],['qualite_projection', 'qualiteProjection'], 'cinema_id'],
           where: { cinema_id: cinemaId },
           include: [
             {
@@ -125,70 +102,54 @@ export const getSeancesByFilm = async (req, res) => {
           ]
         },
         {
-          model: Reservation, 
+          model: Reservation,
           as: 'reservations',
           attributes: ['nb_places'],
-          required: false // ✅ LEFT JOIN pour avoir les séances sans réservations
+          required: false
         }
       ],
-      attributes: ['id', 'date_seance', 'dateHeureDebut', 'dateHeureFin', 'filmId'],
+      attributes: ['id', 'dateHeureDebut', 'dateHeureFin', 'filmId'],
       order: [['dateHeureDebut', 'ASC']]
     });
 
-    console.log(`📅 ${seances.length} séances trouvées`);
+    if (seances.length === 0) return res.json([]);
 
-    if (seances.length === 0) {
-      console.log(' Aucune séance trouvée pour ces paramètres');
-      return res.json([]);
-    }
+    const seancesDisponibles = seances.map(seance => {
+      const salle = seance.salle; // ✅ déclaration de salle
 
-    // Calculer les places disponibles et filtrer
-    const seancesDisponibles = seances
-      .map(seance => {
-        // Calculer le total des places réservées
-        const placesReservees = seance.reservations
-          ? seance.reservations.reduce((sum, r) => sum + (r.nb_places || 0), 0)
-          : 0;
-        
-        const salle = seance.salle;
-        const capaciteSalle = salle?.nombrePlaces || 0;
-        const placesDisponibles = capaciteSalle - placesReservees;
+      const placesReservees = seance.reservations
+        ?.reduce((sum, r) => sum + (r.nb_places || 0), 0) || 0;
 
-        // FIX CRITIQUE: Vérifier que la séance est future (déjà filtré par la requête, mais double sécurité)
-        const isFuture = new Date(seance.dateHeureDebut) >= new Date();
-        console.log(`Séance ${seance.id}: capacité=${capaciteSalle}, réservées=${placesReservees}, dispo=${placesDisponibles}, future=${isFuture}`);
-        // Filtrer: places suffisantes + capacité valide
-        if (placesDisponibles >= nbPersonnes && capaciteSalle > 0 && isFuture) {
-          return {
-            id: seance.id,
-            date_seance: seance.date_seance,
-            dateHeureDebut: seance.dateHeureDebut,
-            dateHeureFin: seance.dateHeureFin,
-            salle: {
-              id: salle.id,
-              nom_salle: salle.nom,
-              capacite: capaciteSalle,
-              qualite_projection: salle.qualite_projection
-            },
-            places_disponibles: placesDisponibles,
-            places_reservees: placesReservees
-          };
-        }
-        return null;
-      })
-      .filter(s => s !== null);
+      const capaciteSalle = salle?.nombrePlaces  || 0;
+      console.log('Salle complète:', JSON.stringify(salle?.dataValues, null, 2));
+      const placesDisponibles = capaciteSalle - placesReservees;
+      const isFuture = new Date(seance.dateHeureDebut) >= new Date();
 
-    console.log(` ${seancesDisponibles.length} séances disponibles pour ${nbPersonnes} personne(s)`);
+      if (placesDisponibles >= nbPersonnes && capaciteSalle > 0 && isFuture) {
+        return {
+          id: seance.id,
+          dateHeureDebut: seance.dateHeureDebut,
+          dateHeureFin: seance.dateHeureFin,
+          salle: {
+            id: salle.id,
+            nom_salle: salle.nom, // ✅ nom_salle et non salle.nom
+            capacite: capaciteSalle,
+            qualite_projection: salle.qualiteProjection
+          },
+          places_disponibles: placesDisponibles,
+          places_reservees: placesReservees
+        };
+      }
+      return null;
+    }).filter(Boolean);
 
     res.json(seancesDisponibles);
-    
+
   } catch (error) {
-    console.error("Erreur getSeancesByFilm:", error);
-    console.error(" Stack trace:", error.stack);
-    res.status(500).json({ 
+    console.error("Erreur getSeancesByFilm:", error.message);
+    res.status(500).json({
       message: "Erreur lors de la récupération des séances",
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: error.message
     });
   }
 };
-
