@@ -7,6 +7,7 @@ import {
   getReservationById,
   updateReservation,
   deleteReservation,
+  sendTicketByEmail
 } from "../controllers/reservation.controller.js";
 
 const router = express.Router();
@@ -16,7 +17,7 @@ router.get("/", getAllReservations);
 router.get("/:id", getReservationById);
 router.put("/:id", updateReservation);
 router.delete("/:id", deleteReservation);
-
+router.post('/:id/send-email', sendTicketByEmail);
 
 /**
  * @swagger

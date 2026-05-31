@@ -11,6 +11,9 @@ import Reservation from './reservation.model.js';
 import Avis from './avis.model.js';
 import Siege from './siege.model.js';
 import Tarif from './tarif.model.js';
+import Incident from './incident.model.js';
+
+
 
 // Les Associations
 /* ============================================================
@@ -80,4 +83,21 @@ User.hasMany(Avis, { foreignKey: 'validated_by', as: 'avisTraites' });
 Reservation.belongsToMany(Siege, { through: 'reservation_siege', as: 'siegesReserves', foreignKey: 'reservation_id' });
 Siege.belongsToMany(Reservation, { through: 'reservation_siege', as: 'reservationsSieges', foreignKey: 'siege_id' });
 
-export { sequelize, Film, Seance, Salle, Cinema, Genre,User,Role,Reservation,Avis ,Siege,Tarif};
+/* ============================================================
+   INCIDENT <-> SALLE
+============================================================ */
+Incident.belongsTo(Salle, { foreignKey: 'salle_id', as: 'salle' });
+Salle.hasMany(Incident, { foreignKey: 'salle_id', as: 'incidents' });
+
+
+/* ============================================================
+   INCIDENT <-> USER
+============================================================ */
+Incident.belongsTo(User, { foreignKey: 'utilisateur_id', as: 'utilisateur' });
+User.hasMany(Incident, { foreignKey: 'utilisateur_id', as: 'incidents' });
+
+
+
+
+
+export { sequelize, Film, Seance, Salle, Cinema, Genre,User,Role,Reservation,Avis ,Siege,Tarif, Incident};
