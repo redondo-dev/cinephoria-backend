@@ -25,11 +25,12 @@ import employeeRoutes from "../src/routes/employee.routes.js";
 import userRoutes from "../src/routes/user.routes.js";
 import reservationRoutes from "../src/routes/reservation.routes.js";
 import contactRoutes from "../src/routes/contact.routes.js";
-
+import paymentRoutes from "../src/routes/payment.routes.js";
 // 👉 Middlewares
 import { authenticate, isAdmin, isClient, isAdminOrEmploye } from "../src/middleware/auth.middleware.js";
 
-
+//routes bureautique 
+import officeRoutes from './routes/office/office.routes.js';
 // ----------------------------
 //  INITIALISATION APP
 // ----------------------------
@@ -68,9 +69,9 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Autoriser les requêtes sans origin (Postman)
+    // Autoriser les requêtes sans origin (Postman, electron)
     if (!origin) {
-      console.log('[CORS] Requête sans origin (outil/serveur)');
+      console.log('[CORS] Requête sans origin (Electron/outil)');
       return callback(null, true);
     }
     
@@ -88,8 +89,7 @@ app.use(cors({
       callback(null, true);
     } else {
       console.log(' [CORS] Origine refusée:', origin);
-      // callback(new Error(`CORS: Origine ${origin} non autorisée`));
-        callback(null, false);
+       return callback(new Error(`CORS refusé: ${origin}`));
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -109,7 +109,7 @@ app.use(cors({
 }));
 
 
-
+app.use('/api/payments/webhook', express.raw({ type: 'application/json' }))
 // Parse JSON et URL Encoded
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -140,12 +140,14 @@ app.use('/api/films', publicFilmRoutes);
 app.use('/api/cinemas', publicCinemaRoutes);
 app.use('/api/seances', publicSeancesRoutes);
 app.use('/api/public/reservations', publicReservationRoutes);
+
 app.use('/contact', contactLimiter, contactRoutes);
 
 
 // 🔐 Routes PROTÉGÉES (JWT requis)
 
 app.use('/api/reservations', authenticate, reservationRoutes);
+app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', authenticate,isAdmin, adminRoutes);
 app.use('/api/user' ,userRoutes);
 app.use('/api/employee', authenticate,isAdminOrEmploye ,employeeRoutes);
@@ -153,6 +155,9 @@ app.use('/api/employee', authenticate,isAdminOrEmploye ,employeeRoutes);
 
 app.use('/api/protected', authenticate, protectedRoutes);
 
+
+// Route pour application bureatique
+app.use('/api/office', officeRoutes);
 // ----------------------------
 // 📤 EXPORT SERVEUR
 // -------------------------

@@ -18,10 +18,10 @@ export const getSiegesDisponibles = async (req, res) => {
     if (!seance) {
       return res.status(404).json({ message: 'Séance non trouvée' });
     }
-
+   const salleId = seance.salle?.id || seance.dataValues?.salleId;
     // 2️-Récupérer tous les sièges de la salle
     const sieges = await Siege.findAll({
-      where: { salle_id: seance.salle.id },
+      where: { salle_id: seance.salleId },
       attributes: ['id', 'numero_siege', 'rangee', 'type_siege'],
       order: [['rangee', 'ASC'], ['numero_siege', 'ASC']]
     });

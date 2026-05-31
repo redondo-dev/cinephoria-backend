@@ -1,10 +1,6 @@
-// controllers/user/commande.controller.js
-import Reservation from '../../models/reservation.model.js';
-import Seance from '../../models/seance.model.js';
-import Film from '../../models/film.model.js';
-import Salle from '../../models/salle.model.js';
-import Cinema from '../../models/cinema.model.js';
-
+// controllers/user/commande.controller.
+import { Reservation, Seance, Film, Salle, Cinema, Siege } from '../../models/index.js';
+// 
 /**
  * Récupérer toutes les réservations de l'utilisateur
  */
@@ -24,7 +20,7 @@ export const getMesCommandes = async (req, res) => {
         {
           model: Seance,
           as: 'seance',
-          attributes: ['id', 'date_seance','date_heure_debut', 'date_heure_fin'],
+          attributes: ['id','date_heure_debut', 'date_heure_fin'],
           include: [
             {
               model: Film,
@@ -56,7 +52,8 @@ console.log('Réservations récupérées :', reservations);
       data: reservations,
     });
   } catch (error) {
-    console.error('Erreur getMesCommandes:', error);
+   console.error('❌ Erreur DÉTAILLÉE getMesCommandes:', error.message); // ← voir message
+    console.error('❌ Stack:', error.stack); 
     res.status(500).json({ error: 'Erreur lors de la récupération des réservations' });
   }
 };
@@ -77,7 +74,7 @@ export const getCommandeById = async (req, res) => {
         {
           model: Seance,
           as: 'seance',
-          attributes: ['id', 'date_seance','date_heure_debut', 'date_heure_fin'],
+          attributes: ['id','date_heure_debut', 'date_heure_fin'],
           include: [
             {
               model: Film,
