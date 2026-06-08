@@ -33,8 +33,8 @@ if (seances.length === 0) {
  // Formater et dédupliquer les dates
    const dateSet = new Set();
     seances.forEach(s => {
-      if (s.date_heure_debut) {
-        dateSet.add(new Date(s.date_heure_debut).toISOString().split('T')[0]);
+      if (s.dateHeureDebut) {
+        dateSet.add(new Date(s.dateHeureDebut).toISOString().split('T')[0]);
       }
     });
 

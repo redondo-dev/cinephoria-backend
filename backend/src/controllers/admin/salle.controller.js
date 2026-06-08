@@ -44,11 +44,21 @@ export const updateSalle = async (req, res) => {
     if (!salle) {
       return res.status(404).json({ message: "Salle non trouvée" });
     }
+const { nom, nombrePlaces, qualiteProjection } = req.body;
 
-    await salle.update(req.body);
+   await salle.update({
+      ...(nom && { nom }),
+      ...(nombrePlaces && { nombrePlaces }),
+      ...(qualiteProjection && { qualiteProjection })
+    });
 
-    res.status(200).json({ message: "Salle mise à jour avec succès", data: salle });
+  res.status(200).json({ message: "Salle mise à jour avec succès", data: salle });
   } catch (error) {
+    if (error.name === 'SequelizeValidationError') {
+      return res.status(400).json({
+        message: error.errors.map(e => e.message).join(', ')
+      });
+    }
     res.status(400).json({ message: error.message });
   }
 };
@@ -74,6 +84,7 @@ export const deleteSalle = async (req, res) => {
 export const getAllSalles = async (req, res) => {
   try {
     const salles = await Salle.findAll();
+    order: [['id', 'ASC']] 
      console.log('Salles récupérées:', salles); 
     res.status(200).json({ data: salles });
   } catch (error) {
