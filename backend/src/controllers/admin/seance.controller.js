@@ -1,4 +1,4 @@
-// backend/src/controllers/seances.controller.js
+// backend/src/controllers/admin/seance.controller.js
 import { Seance, Film, Salle, Reservation } from '../../models/index.js';
 import Cinema from '../../models/cinema.model.js';
 import Tarif from '../../models/tarif.model.js';
@@ -99,6 +99,7 @@ export const getAllSeances = async (req, res) => {
         heureFin: s.dateHeureFin,
         placesDisponibles: (s.salle?.capacite || 0) - totalPlacesReservees,
       };
+      console.log(typeof s.dateHeureDebut, s.dateHeureDebut);
     });
       
 
@@ -119,7 +120,12 @@ export const getAllSeances = async (req, res) => {
 export const getSeanceById = async (req, res) => {
   try {
     const { id } = req.params;
-    const seance = await Seance.findByPk(id);
+    const seance = await Seance.findByPk(id, {
+      include: [
+        { model: Film, as: 'film', attributes: ['id', 'titre'] },
+        { model: Salle, as: 'salle', attributes: ['id', 'nom', 'nombrePlaces', 'qualiteProjection'] }
+      ]
+    });
     if (!seance) {
       return res.status(404).json({ message: "Séance non trouvée" });
     }

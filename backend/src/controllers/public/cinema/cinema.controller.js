@@ -30,6 +30,7 @@ export const getFilmsByCinema = async (req, res) => {
 
     const films = await Film.findAll({
       attributes: ['id', 'titre', 'duree', 'affiche', 'description'],
+       logging: (sql) => console.log('🔍 SQL généré:', sql), // ✅ ajout temporaire
       include: [
         {
           model: Seance,
@@ -38,18 +39,25 @@ export const getFilmsByCinema = async (req, res) => {
           where: {
             dateHeureDebut: { [Op.gte]: new Date() }
           },
-          attributes: ['id', 'dateHeureDebut', 'dateHeureFin'], // ✅ hors du where
+          attributes: ['id', 'dateHeureDebut', 'dateHeureFin'],
           include: [
             {
               model: Salle,
               as: 'salle',
               required: true,
-              attributes: ['id', 'nom', 'nombrePlaces', 'qualiteProjection'],
+              // ✅ snake_case avec alias comme dans getSeancesByFilm
+              attributes: [
+                'id',
+                ['nom_salle', 'nom'],
+                ['capacite', 'nombrePlaces'],
+                ['qualite_projection', 'qualiteProjection']
+              ],
               include: [
                 {
                   model: Cinema,
                   as: 'cinema',
                   where: { id },
+                  required: true,
                   attributes: ['id', 'nom', 'ville']
                 }
               ]

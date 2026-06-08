@@ -5,6 +5,7 @@ import Seance from './seance.model.js';
 import Salle from './salle.model.js';
 import Cinema from './cinema.model.js';
 import Genre from './genre.model.js';
+import FilmGenre from './filmGenre.model.js';
 import User from './user.model.js';
 import Role from './role.model.js';
 import Reservation from './reservation.model.js';
@@ -23,7 +24,19 @@ import Incident from './incident.model.js';
 Film.hasMany(Seance, { foreignKey: 'film_id', as: 'seances' });
 Seance.belongsTo(Film, { foreignKey: 'film_id', as: 'film' });
 
-
+// Association N-N Film <-> Genre via table intermédiaire film_genre
+Film.belongsToMany(Genre, {
+  through: FilmGenre,          // ← modèle au lieu de string
+  foreignKey: 'film_id',
+  otherKey: 'genre_id',
+  as: 'genres',
+});
+Genre.belongsToMany(Film, {
+  through: FilmGenre,          // ← idem
+  foreignKey: 'genre_id',
+  otherKey: 'film_id',
+  as: 'films',
+});
 /* ============================================================
    CINEMA / SALLE / SIEGES
 ============================================================ */

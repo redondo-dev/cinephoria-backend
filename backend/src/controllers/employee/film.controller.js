@@ -1,6 +1,5 @@
 // controllers/employee/film.controller.js
-import Film from '../../models/film.model.js';
-import Seance from '../../models/seance.model.js';
+import { Film, Seance, Genre } from '../../models/index.js';
 
 // Récupérer tous les films
 export const getAllFilms = async (req, res) => {
