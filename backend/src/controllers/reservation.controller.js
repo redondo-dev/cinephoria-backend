@@ -4,7 +4,7 @@ import { sendTicketEmail } from '../utils/sendEmailConfirmation.js';
 
 export const createReservation = async (req, res) => {
   try {
-    const { utilisateur_id = null, seance_id, nb_places, prix_unitaire, date_expiration,sieges } = req.body;
+    const { utilisateur_id = null, seance_id, nb_places, prix_unitaire, date_expiration,sieges ,statut_reservation} = req.body;
 
     if (!seance_id || !nb_places || !prix_unitaire) {
       return res.status(400).json({
@@ -18,6 +18,7 @@ export const createReservation = async (req, res) => {
       nb_places,
       prix_unitaire,
       date_expiration: date_expiration || null,
+      statut_reservation: statut_reservation || 'en_attente', 
     });
   if (sieges && sieges.length > 0) {
       await reservation.addSiegesReserves(sieges); // méthode générée par belongsToMany

@@ -4,7 +4,7 @@ import { login, logout,forgotPassword,changeTempPassword,forgotPasswordVisitor} 
 import { confirmEmail } from "../../controllers/auth/confirm.controller.js";
 import { register,registerWithTempPassword } from "../../controllers/auth/register.controller.js";
 import { resetPassword } from "../../controllers/auth/auth.controller.js";
-import  { verifyTurnstile } from '../../middleware/turnstile.middleware.js';
+import {verifyCaptcha} from "../../middleware/verifycaptcha.middleware.js";
 
 const router = express.Router();
 
@@ -46,7 +46,7 @@ const router = express.Router();
  *         description: Données invalides ou utilisateur existant
  */
 // Création compte standard (visiteur, utilisateur)
-router.post("/register",verifyTurnstile, register);
+router.post("/register",verifyCaptcha, register);
 
 /**
  * @swagger
@@ -201,7 +201,7 @@ router.post("/change-temp-password", changeTempPassword);
  *       401:
  *         description: Identifiants invalides
  */
-router.post("/login",verifyTurnstile, login);
+router.post("/login",verifyCaptcha, login);
 
 
 /**

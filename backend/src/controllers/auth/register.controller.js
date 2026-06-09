@@ -52,7 +52,7 @@ export const register = async (req, res) => {
       prenom,
       nom,
       username,
-      role_id: role_id || 4, // Par défaut visiteur
+      role_id: role_id || 1, // Par défaut client
       isConfirmed: false,
       mustChangePassword: false,
     });

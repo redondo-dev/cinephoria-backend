@@ -22,6 +22,7 @@ export const createPaymentIntent = async (req, res) => {
       metadata: {
         seance_id: String(reservationData?.seance_id || ''),
         utilisateur_id: String(reservationData?.utilisateur_id || ''),
+        reservation_id: String(reservationData?.reservation_id || ''),
       },
     });
 
@@ -55,14 +56,34 @@ export const handleWebhook = async (req, res) => {
   switch (event.type) {
     case 'payment_intent.succeeded':
       const paymentIntent = event.data.object;
-      console.log('✅ Paiement confirmé :', paymentIntent.id);
+       const reservation_id = paymentIntent.metadata?.reservation_id;
+      
       // Optionnel : créer la réservation ici de façon fiable
+
+       if (reservation_id) {
+        await Reservation.update(
+          { statut_reservation: 'confirmee' },
+          { where: { id: reservation_id } }
+        );
+        console.log(`✅ Réservation #${reservation_id} confirmée`);
+        } else {
+        console.warn('⚠️ Webhook reçu sans reservation_id dans metadata');
+      }
       break;
 
-    case 'payment_intent.payment_failed':
-      console.error('❌ Paiement échoué :', event.data.object.id);
+    case 'payment_intent.payment_failed':{
+      const paymentIntent = event.data.object;
+      const reservation_id = paymentIntent.metadata?.reservation_id;
+    
+     if (reservation_id) {
+        await Reservation.update(
+          { statut_reservation: 'annulee' },
+          { where: { id: reservation_id } }
+        );
+        console.log(`❌ Réservation #${reservation_id} annulée`);
+      }
       break;
-
+    }
     default:
       console.log(`Événement Stripe non géré : ${event.type}`);
   }
