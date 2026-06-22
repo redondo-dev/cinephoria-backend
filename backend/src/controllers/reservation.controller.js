@@ -10,8 +10,16 @@ export const createReservation = async (req, res) => {
       return res.status(400).json({
         message: "Champs obligatoires manquants : seance_id, nb_places, prix_unitaire",
       });
+
     }
 
+      if (prix_unitaire < 0) {
+  return res.status(400).json({ message: "Le prix ne peut pas être négatif" })
+}
+
+if (nb_places <= 0) {
+  return res.status(400).json({ message: "Le nombre de places doit être positif" })
+}
     const reservation = await Reservation.create({
       utilisateur_id,
       seance_id,

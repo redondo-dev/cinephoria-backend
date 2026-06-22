@@ -6,11 +6,14 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "cross-env NODE_ENV=development nodemon src/server.js",
+    "start:prod": "npx sequelize-cli db:migrate && node src/server.js",
     "prod": "cross-env NODE_ENV=production node src/server.js",
     "test": "cross-env NODE_ENV=test NODE_OPTIONS='--experimental-vm-modules' jest --detectOpenHandles --forceExit",
     "test:watch": "npm test -- --watch",
     "test:coverage": "npm test -- --coverage",
-    "swagger:export": "node src/config/swagger.export.js"
+    "swagger:export": "node src/config/swagger.export.js",
+    "seed:test": "node src/seeders/run.seeder.js seed",
+    "seed:clean": "node src/seeders/run.seeder.js clean"
   },
   "jest": {
     "testEnvironment": "node",
@@ -50,8 +53,10 @@
   },
   "devDependencies": {
     "cross-env": "^10.0.0",
+    "cypress": "^15.17.0",
     "jest": "^30.1.3",
     "nodemon": "^3.1.10",
+    "sequelize-cli": "^6.6.5",
     "supertest": "^7.1.4"
   }
 }

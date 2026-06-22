@@ -1,6 +1,6 @@
 // src/routes/reservation.routes.js
 import express from "express";
-
+import { authenticate } from "../middleware/auth.middleware.js";
 import {
   createReservation,
   getAllReservations,
@@ -11,13 +11,6 @@ import {
 } from "../controllers/reservation.controller.js";
 
 const router = express.Router();
-
-router.post("/", createReservation);
-router.get("/", getAllReservations);
-router.get("/:id", getReservationById);
-router.put("/:id", updateReservation);
-router.delete("/:id", deleteReservation);
-router.post('/:id/send-email', sendTicketByEmail);
 
 /**
  * @swagger
@@ -41,42 +34,37 @@ router.post('/:id/send-email', sendTicketByEmail);
  *           schema:
  *             type: object
  *             required:
- *               - utilisateurId
- *               - seanceId
- *               - nbPlaces
+ *               - seance_id
+ *               - nb_places
+ *               - prix_unitaire
  *             properties:
- *               utilisateurId:
+ *               seance_id:
  *                 type: integer
- *                 example: 12
- *               seanceId:
- *                 type: integer
- *                 example: 45
- *               nbPlaces:
+ *                 example: 15
+ *               nb_places:
  *                 type: integer
  *                 example: 2
- *               total:
+ *               prix_unitaire:
  *                 type: number
- *                 example: 19.80
+ *                 example: 9.90
+ *               sieges:
+ *                 type: array
+ *                 items:
+ *                   type: integer
+ *                 example: [724, 725]
+ *               statut_reservation:
+ *                 type: string
+ *                 enum: [en_attente, confirmee, annulee, valide]
+ *                 example: en_attente
  *     responses:
  *       201:
  *         description: Réservation créée avec succès
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 id:
- *                   type: integer
- *                   example: 87
- *                 statut:
- *                   type: string
- *                   example: "en_attente"
  *       400:
- *         description: Données invalides
+ *         description: Champs obligatoires manquants
  *       401:
- *         description: Non autorisé
+ *         description: Token manquant ou invalide
  */
-router.post("/", createReservation);
+router.post("/", authenticate, createReservation);
 
 /**
  * @swagger
@@ -89,44 +77,16 @@ router.post("/", createReservation);
  *     responses:
  *       200:
  *         description: Liste de toutes les réservations
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   id:
- *                     type: integer
- *                     example: 5
- *                   utilisateur:
- *                     type: string
- *                     example: "jean.dupont@example.com"
- *                   film:
- *                     type: string
- *                     example: "Dune : Deuxième Partie"
- *                   dateSeance:
- *                     type: string
- *                     example: "2025-10-18T20:00:00"
- *                   nbPlaces:
- *                     type: integer
- *                     example: 2
- *                   total:
- *                     type: number
- *                     example: 19.80
- *                   statut:
- *                     type: string
- *                     example: "valide"
  *       401:
  *         description: Non autorisé
  */
-router.get("/", getAllReservations);
+router.get("/", authenticate, getAllReservations);
 
 /**
  * @swagger
  * /reservations/{id}:
  *   get:
- *     summary: Récupère une réservation spécifique
+ *     summary: Récupère une réservation par ID avec jointures
  *     tags: [Réservations]
  *     security:
  *       - bearerAuth: []
@@ -134,42 +94,23 @@ router.get("/", getAllReservations);
  *       - name: id
  *         in: path
  *         required: true
- *         description: ID de la réservation
  *         schema:
  *           type: integer
  *     responses:
  *       200:
- *         description: Réservation trouvée
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 id:
- *                   type: integer
- *                   example: 42
- *                 film:
- *                   type: string
- *                   example: "Inception"
- *                 nbPlaces:
- *                   type: integer
- *                   example: 3
- *                 total:
- *                   type: number
- *                   example: 27.00
- *                 statut:
- *                   type: string
- *                   example: "en_attente"
+ *         description: Réservation trouvée avec film, salle, cinéma et sièges
+ *       401:
+ *         description: Non autorisé
  *       404:
  *         description: Réservation non trouvée
  */
-router.get("/:id", getReservationById);
+router.get("/:id", authenticate, getReservationById);
 
 /**
  * @swagger
  * /reservations/{id}:
  *   put:
- *     summary: Met à jour une réservation existante
+ *     summary: Met à jour une réservation
  *     tags: [Réservations]
  *     security:
  *       - bearerAuth: []
@@ -177,7 +118,6 @@ router.get("/:id", getReservationById);
  *       - name: id
  *         in: path
  *         required: true
- *         description: ID de la réservation à modifier
  *         schema:
  *           type: integer
  *     requestBody:
@@ -187,25 +127,19 @@ router.get("/:id", getReservationById);
  *           schema:
  *             type: object
  *             properties:
- *               nbPlaces:
- *                 type: integer
- *                 example: 4
- *               total:
- *                 type: number
- *                 example: 36.00
- *               statut:
+ *               statut_reservation:
  *                 type: string
- *                 enum: [en_attente, valide, annulée]
- *                 example: "valide"
+ *                 enum: [en_attente, confirmee, annulee, valide]
+ *                 example: confirmee
  *     responses:
  *       200:
- *         description: Réservation mise à jour avec succès
- *       400:
- *         description: Données invalides
+ *         description: Réservation mise à jour
+ *       401:
+ *         description: Non autorisé
  *       404:
  *         description: Réservation non trouvée
  */
-router.put("/:id", updateReservation);
+router.put("/:id", authenticate, updateReservation);
 
 /**
  * @swagger
@@ -219,15 +153,42 @@ router.put("/:id", updateReservation);
  *       - name: id
  *         in: path
  *         required: true
- *         description: ID de la réservation à supprimer
  *         schema:
  *           type: integer
  *     responses:
  *       200:
  *         description: Réservation supprimée avec succès
+ *       401:
+ *         description: Non autorisé
  *       404:
  *         description: Réservation non trouvée
  */
-router.delete("/:id", deleteReservation);
+router.delete("/:id", authenticate, deleteReservation);
+
+/**
+ * @swagger
+ * /reservations/{id}/send-email:
+ *   post:
+ *     summary: Envoie le billet par email
+ *     tags: [Réservations]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Email envoyé avec succès
+ *       401:
+ *         description: Non autorisé
+ *       404:
+ *         description: Réservation non trouvée
+ */
+router.post("/:id/send-email", authenticate, sendTicketByEmail);
 
 export default router;
+
+

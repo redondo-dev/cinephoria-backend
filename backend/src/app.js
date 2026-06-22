@@ -89,7 +89,7 @@ app.use(cors({
       callback(null, true);
     } else {
       console.log(' [CORS] Origine refusée:', origin);
-       return callback(new Error(`CORS refusé: ${origin}`));
+       return callback(null,false, 'Not allowed by CORS');
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],

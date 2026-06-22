@@ -33,27 +33,6 @@ export const getAllFilmsPublic = async (req, res) => {
           ...(genre ? { where: { id: genre } } : {}),
           required: !!genre,
         },
-        {
-          model: Seance,
-          as: 'seances',
-          required: false,
-          attributes: ['id', 'filmId', 'salleId', 'dateHeureDebut', 'dateHeureFin'],
-          include: [
-            {
-              model: Salle,
-              as: 'salle',
-              required: false,
-              include: [
-                {
-                  model: Cinema,
-                  as: 'cinema',
-                  attributes: ['id', 'nom', 'ville'],
-                  required: false,
-                },
-              ],
-            },
-          ],
-        },
       ],
     });
 
