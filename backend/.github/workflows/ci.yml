@@ -1,0 +1,73 @@
+name: CI Backend
+
+on:
+  push:
+    branches: ["main", "dev"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  test-api:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: cinephoria_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Installer les dependances
+        run: npm ci
+
+      # --- Audit de securite des dependances ---
+      - name: Audit npm (dependances vulnerables)
+        run: npm audit --audit-level=high
+
+      - name: Migrer la base de test
+        run: npx sequelize-cli db:migrate --env test
+        env:
+          DB_HOST: localhost
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          DB_NAME: cinephoria_test
+
+      - name: Demarrer le serveur backend
+        run: npm run dev &
+        env:
+          NODE_ENV: test
+          DISABLE_CAPTCHA: true
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          DB_HOST: localhost
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          DB_NAME: cinephoria_test
+
+      - name: Seed des donnees de test
+        run: npm run seed:test
+
+      - name: Tests API Cypress
+        uses: cypress-io/github-action@v6
+        with:
+          config-file: cypress.config.js
+          spec: cypress/e2e/api/**/*.cy.js
+
+  # Render est connecte directement au repo (Settings -> Build & Deploy -> Auto-Deploy: main)
+  # et redeploie automatiquement quand ce job passe et qu'un push arrive sur main.
+  # Aucun deploy hook manuel necessaire dans ce workflow.
