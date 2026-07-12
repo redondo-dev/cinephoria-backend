@@ -4,7 +4,7 @@ import { login, logout,forgotPassword,changeTempPassword,forgotPasswordVisitor} 
 import { confirmEmail } from "../../controllers/auth/confirm.controller.js";
 import { register,registerWithTempPassword } from "../../controllers/auth/register.controller.js";
 import { resetPassword } from "../../controllers/auth/auth.controller.js";
-import {verifyCaptcha} from "../../middleware/verifycaptcha.middleware.js";
+import {verifyCaptcha} from "../../middleware/verifyCaptcha.middleware.js";
 
 const router = express.Router();
 
