@@ -41,7 +41,7 @@ jobs:
       # --- Audit de securite des dependances ---
       - name: Audit npm (dependances vulnerables)
         working-directory: ./backend
-        run: npm audit --audit-level=high
+        run: npx audit-ci --audit-ci.jsonc
 
       - name: Migrer la base de test
         working-directory: ./backend
