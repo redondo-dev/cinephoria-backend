@@ -9,6 +9,14 @@ on:
 jobs:
   test-api:
     runs-on: ubuntu-latest
+    env:
+      NODE_ENV: test
+      DISABLE_CAPTCHA: true
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      DB_HOST: localhost
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: cinephoria_test
 
     services:
       postgres:
@@ -46,23 +54,10 @@ jobs:
       - name: Migrer la base de test
         working-directory: ./backend
         run: npx sequelize-cli db:migrate --env test
-        env:
-          DB_HOST: localhost
-          DB_USER: postgres
-          DB_PASSWORD: postgres
-          DB_NAME: cinephoria_test
 
       - name: Demarrer le serveur backend
         working-directory: ./backend
         run: npm run dev &
-        env:
-          NODE_ENV: test
-          DISABLE_CAPTCHA: true
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          DB_HOST: localhost
-          DB_USER: postgres
-          DB_PASSWORD: postgres
-          DB_NAME: cinephoria_test
 
       - name: Seed des donnees de test
         working-directory: ./backend
