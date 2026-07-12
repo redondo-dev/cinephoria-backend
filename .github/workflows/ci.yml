@@ -32,15 +32,19 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
+          cache-dependency-path: backend/package-lock.json
 
       - name: Installer les dependances
+        working-directory: ./backend
         run: npm ci
 
       # --- Audit de securite des dependances ---
       - name: Audit npm (dependances vulnerables)
+        working-directory: ./backend
         run: npm audit --audit-level=high
 
       - name: Migrer la base de test
+        working-directory: ./backend
         run: npx sequelize-cli db:migrate --env test
         env:
           DB_HOST: localhost
@@ -49,6 +53,7 @@ jobs:
           DB_NAME: cinephoria_test
 
       - name: Demarrer le serveur backend
+        working-directory: ./backend
         run: npm run dev &
         env:
           NODE_ENV: test
@@ -60,14 +65,16 @@ jobs:
           DB_NAME: cinephoria_test
 
       - name: Seed des donnees de test
+        working-directory: ./backend
         run: npm run seed:test
 
       - name: Tests API Cypress
         uses: cypress-io/github-action@v6
         with:
+          working-directory: backend
           config-file: cypress.config.js
           spec: cypress/e2e/api/**/*.cy.js
 
-  # Render est connecte directement au repo (Settings -> Build & Deploy -> Auto-Deploy: main)
-  # et redeploie automatiquement quand ce job passe et qu'un push arrive sur main.
+  # Render est connecte directement au repo (Settings -> Build & Deploy -> Auto-Deploy: main,
+  # Root Directory: backend) et redeploie automatiquement quand ce job passe sur main.
   # Aucun deploy hook manuel necessaire dans ce workflow.
