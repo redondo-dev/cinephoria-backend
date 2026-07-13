@@ -86,3 +86,5 @@ Thumbs.db
 report.html
 report.json
 !src/migrations/sql/*.sql
+tests/load-tests/results/
+backend/tests/load-tests/results/
