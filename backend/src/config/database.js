@@ -6,7 +6,7 @@ import { Sequelize } from 'sequelize';
 let sequelize;
 
 // Priorité à DATABASE_URL si elle existe
-if (process.env.DATABASE_URL) { 
+if (process.env.NODE_ENV !== 'test' && process.env.DATABASE_URL) { 
   sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialectOptions: {
       ssl: {
