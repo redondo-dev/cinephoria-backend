@@ -85,3 +85,4 @@ Thumbs.db
 *.artifact
 report.html
 report.json
+!src/migrations/sql/*.sql

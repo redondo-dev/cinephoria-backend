@@ -1,22 +1,18 @@
 'use strict';
+const fs = require('fs');
+const path = require('path');
 
-/** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  async up (queryInterface, Sequelize) {
-    /**
-     * Add altering commands here.
-     *
-     * Example:
-     * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
-     */
+  async up(queryInterface, Sequelize) {
+    const sqlPath = path.join(__dirname, 'sql', 'initial-schema.sql');
+    const sql = fs.readFileSync(sqlPath, 'utf8');
+    await queryInterface.sequelize.query(sql);
   },
 
-  async down (queryInterface, Sequelize) {
-    /**
-     * Add reverting commands here.
-     *
-     * Example:
-     * await queryInterface.dropTable('users');
-     */
+  async down(queryInterface, Sequelize) {
+    await queryInterface.sequelize.query(`
+      DROP SCHEMA public CASCADE;
+      CREATE SCHEMA public;
+    `);
   }
 };
