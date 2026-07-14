@@ -18,9 +18,7 @@ export const connectMongo = async () => {
       dbName: process.env.MONGO_DB_NAME || 'cinephoria',
     });
     
-    console.log(` MongoDB connecté: ${mongoose.connection.host}`);
-    console.log(`Base de données: ${mongoose.connection.name}`);
-    console.log(`État: ${mongoose.connection.readyState}`); // Doit être 1
+   
     
  if (process.env.NODE_ENV === "production") {
       console.log("MongoDB connecté **en PRODUCTION**");
