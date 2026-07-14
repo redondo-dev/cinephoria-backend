@@ -1,0 +1,225 @@
+name: CI Backend
+
+on:
+  push:
+    branches: ["main", "dev"]
+  pull_request:
+    branches: ["main", "dev"]
+  workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * 1" # tous les lundis a 3h du matin (tests de charge)
+
+jobs:
+  test-api:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    env:
+      NODE_ENV: test
+      DISABLE_CAPTCHA: true
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+      DB_HOST: localhost
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: cinephoria_test
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: cinephoria_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Installer les dependances
+        working-directory: ./backend
+        run: npm ci
+
+      # --- Audit de securite des dependances ---
+      - name: Audit npm (dependances vulnerables)
+        working-directory: ./backend
+        run: npx audit-ci --config audit-ci.jsonc
+
+      - name: Migrer la base de test
+        working-directory: ./backend
+        run: npx sequelize-cli db:migrate --env test
+
+      - name: Seed des donnees de test
+        working-directory: ./backend
+        run: npm run seed:test
+
+  # ------------------------------------------------------------------
+  # Smoke test : demarre le serveur et verifie que les endpoints
+  # critiques repondent. Rapide (quelques secondes), execute a chaque
+  # push/PR pour detecter immediatement une regression bloquante.
+  # ------------------------------------------------------------------
+  smoke-test:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    needs: test-api
+    env:
+      NODE_ENV: test
+      DISABLE_CAPTCHA: true
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+      DB_HOST: localhost
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: cinephoria_test
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: cinephoria_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Installer les dependances
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Migrer la base de test
+        working-directory: ./backend
+        run: npx sequelize-cli db:migrate --env test
+
+      - name: Seed des donnees de test
+        working-directory: ./backend
+        run: npm run seed:test
+
+      - name: Demarrer le serveur backend
+        working-directory: ./backend
+        run: npm run dev &
+
+      - name: Attendre que le serveur soit pret
+        run: npx wait-on http://localhost:3000/api/films --timeout 30000
+
+      - name: Verifier que les endpoints cles repondent
+        run: |
+          curl -f http://localhost:3000/api/films || exit 1
+
+  # ------------------------------------------------------------------
+  # Tests de charge k6 (spike, stress, soak) : couteux en temps et en
+  # ressources, ne servent pas a valider une PR individuelle. Executes
+  # uniquement a la demande (workflow_dispatch) ou de facon planifiee
+  # (tous les lundis), jamais a chaque push.
+  # ------------------------------------------------------------------
+  load-tests:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    env:
+      NODE_ENV: test
+      DISABLE_CAPTCHA: true
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+      DB_HOST: localhost
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: cinephoria_test
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: cinephoria_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Installer les dependances
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Migrer la base de test
+        working-directory: ./backend
+        run: npx sequelize-cli db:migrate --env test
+
+      - name: Seed des donnees de test
+        working-directory: ./backend
+        run: npm run seed:test
+
+      - name: Demarrer le serveur backend
+        working-directory: ./backend
+        run: npm run dev &
+
+      - name: Attendre que le serveur soit pret
+        run: npx wait-on http://localhost:3000/api/films --timeout 30000
+
+      - name: Installer k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install -y k6
+
+      - name: Lancer le test de stress
+        working-directory: ./backend
+        run: k6 run tests/load-tests/stress.load.js
+
+      - name: Lancer le test de spike
+        working-directory: ./backend
+        run: k6 run tests/load-tests/spike.load.js
+
+      - name: Publier les resultats comme artefact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: k6-results
+          path: backend/tests/load-tests/results/
+
+  # Les tests API et E2E Cypress necessitent le backend ET le frontend
+  # actifs simultanement. Ils sont geres dans le repo cinephoria-orchestration,
+  # qui demarre l'ensemble via Docker Compose et y fait tourner la suite
+  # Cypress complete (API + E2E) contre les services reels.
+
+  # Render est connecte directement au repo (Settings -> Build & Deploy ->
+  # Auto-Deploy: main, Root Directory: backend) et redeploie automatiquement
+  # quand le job test-api passe sur main. Aucun deploy hook manuel necessaire ici.

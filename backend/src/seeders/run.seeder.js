@@ -2,6 +2,7 @@
 import 'dotenv/config' 
 import sequelize  from '../config/database.js'
 import { seedTestData, cleanTestData } from './test.seeder.js'
+import { seedRoles } from './role.seeder.js'
 
 const action = process.argv[2] // 'seed' ou 'clean'
 
@@ -11,6 +12,7 @@ async function run() {
     console.log('✅ Connexion DB OK')
 
     if (action === 'seed') {
+      await seedRoles()
       await seedTestData()
     } else if (action === 'clean') {
       await cleanTestData()

@@ -8,7 +8,7 @@ export const connectMongo = async () => {
       throw new Error('MONGODB_URI ou MONGO_URI non défini dans .env');
     }
     
-    console.log('🔄 Connexion à MongoDB...', uri);
+   
     
     await mongoose.connect(uri, {
       serverSelectionTimeoutMS: 30000,
@@ -18,6 +18,7 @@ export const connectMongo = async () => {
       dbName: process.env.MONGO_DB_NAME || 'cinephoria',
     });
     
+  
    
     
  if (process.env.NODE_ENV === "production") {
