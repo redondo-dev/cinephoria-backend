@@ -17,6 +17,7 @@ jobs:
       NODE_ENV: test
       DISABLE_CAPTCHA: true
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
       DB_HOST: localhost
       DB_USER: postgres
       DB_PASSWORD: postgres
@@ -141,6 +142,7 @@ jobs:
       NODE_ENV: test
       DISABLE_CAPTCHA: true
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
       DB_HOST: localhost
       DB_USER: postgres
       DB_PASSWORD: postgres
