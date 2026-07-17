@@ -31,6 +31,7 @@ WORKDIR /app
 COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nodejs:nodejs /app/package*.json ./
 COPY --chown=nodejs:nodejs ./src ./src
+COPY --chown=nodejs:nodejs .sequelizerc ./
 
 # Passage à l'utilisateur non-root
 USER nodejs
