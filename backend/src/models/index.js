@@ -113,4 +113,4 @@ User.hasMany(Incident, { foreignKey: 'utilisateur_id', as: 'incidents' });
 
 
 
-export { sequelize, Film, Seance, Salle, Cinema, Genre,User,Role,Reservation,Avis ,Siege,Tarif, Incident};
+export { sequelize, Film, Seance, Salle, Cinema, Genre, FilmGenre, User, Role, Reservation, Avis, Siege, Tarif, Incident };
