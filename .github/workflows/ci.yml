@@ -185,6 +185,17 @@ jobs:
         working-directory: ./backend
         run: npm run seed:test
 
+      - name: Tests unitaires backend
+        working-directory: ./backend
+        run: npm run test coverage
+
+      - name: Publier la couverture Jest
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jest-coverage
+          path: backend/coverage/
+
       - name: Demarrer le serveur backend
         working-directory: ./backend
         run: npm run dev &
