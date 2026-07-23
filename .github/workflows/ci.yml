@@ -187,7 +187,7 @@ jobs:
 
       - name: Tests unitaires backend
         working-directory: ./backend
-        run: npm run test coverage
+        run: npm run test:coverage
 
       - name: Publier la couverture Jest
         uses: actions/upload-artifact@v4
