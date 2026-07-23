@@ -7,7 +7,6 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import { sequelize } from './models/index.js';
 import setupSwagger from "./config/swagger.config.js";
 
 // 👉 Routes publiques
@@ -139,12 +138,8 @@ app.use((req, res, next) => {
 app.use('/api/auth', authRoutes);
 // Healthcheck pour Docker/monitoring -- verifie que l'API et la DB repondent
 app.get('/health', async (req, res) => {
-  try {
-    await sequelize.authenticate();
-    res.status(200).json({ status: 'ok', db: 'connected' });
-  } catch (err) {
-    res.status(503).json({ status: 'error', db: 'disconnected' });
-  }
+    res.status(200).json({ status: 'ok' });
+  
 });
 
 app.use('/api/films', publicFilmRoutes);

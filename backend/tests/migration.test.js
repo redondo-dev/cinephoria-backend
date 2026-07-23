@@ -1,5 +1,5 @@
 // backend/tests/migrations.test.js
-import { sequelize } from '../config/database.js'
+import sequelize  from '../src/config/database.js'
 
 describe('Tests migrations PostgreSQL Render', () => {
 

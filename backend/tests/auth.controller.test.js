@@ -28,7 +28,7 @@ jest.unstable_mockModule('jsonwebtoken', () => ({
 }));
 
 // Import après les mocks
-const { login, logout } = await import('../src/controllers/auth.controller.js');
+const { login, logout } = await import('../src/controllers/auth/auth.controller.js');
 
 describe('Auth Controller', () => {
   let mockReq, mockRes;
