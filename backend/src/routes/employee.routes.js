@@ -3,10 +3,10 @@ import { Router } from 'express';
 
 import { authenticate, isAdminOrEmploye } from '../middleware/auth.middleware.js';
 
-import { getAllFilms, createFilm, getFilmById, updateFilm, deleteFilm } from '../controllers/employee/film.controller.js';
-import { getAllSalles, createSalle, getSalleById, updateSalle, deleteSalle } from '../controllers/employee/salle.controller.js';
-import { getAllSeances, createSeance, getSeanceById, updateSeance, deleteSeance } from '../controllers/employee/seance.controller.js';
-import { getAllAvis, getAvisEnAttente, validerAvis, deleteAvis } from '../controllers/employee/avis.controller.js';
+import { getAllFilms, createFilm, getFilmById, updateFilm, deleteFilm } from '../controllers/film.controller.js';
+import { getAllSalles, createSalle, getSalleById, updateSalle, deleteSalle } from '../controllers/salle.controller.js';
+import { getAllSeances, createSeance, getSeanceById, updateSeance, deleteSeance, bulkDeleteSeances } from '../controllers/seance.controller.js';
+import { getAllAvis, getAvisEnAttente, validerAvis,rejeterAvis, deleteAvis } from '../controllers/employee/avis.controller.js';
 import { getDashboard } from '../controllers/employee/intranet.controller.js';
 import { getAllTarifs, getTarifById, createTarif, updateTarif, deleteTarif } from '../controllers/employee/tarif.controller.js';
 const router = Router();
@@ -285,6 +285,42 @@ router.put("/seances/:id", updateSeance);
 
 /**
  * @swagger
+ * /employee/seances/bulk:
+ *   delete:
+ *     summary: Supprime plusieurs séances en une fois
+ *     description: >
+ *       Les séances ayant encore des réservations liées sont ignorées (jamais
+ *       supprimées de force) — le corps de la réponse indique combien ont été
+ *       supprimées et combien ont été bloquées.
+ *     tags: [Employés]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - ids
+ *             properties:
+ *               ids:
+ *                 type: array
+ *                 items:
+ *                   type: integer
+ *                 example: [12, 13, 14]
+ *     responses:
+ *       200:
+ *         description: Résultat de la suppression groupée (supprimées / bloquées)
+ *       400:
+ *         description: Aucun identifiant fourni
+ */
+// ⚠️ Doit rester déclarée AVANT "/seances/:id" (DELETE), sinon Express interprète
+// "bulk" comme une valeur de :id et route vers deleteSeance au lieu de bulkDeleteSeances.
+router.delete("/seances/bulk", bulkDeleteSeances);
+
+/**
+ * @swagger
  * /employee/seances/{id}:
  *   delete:
  *     summary: Supprime une séance
@@ -348,6 +384,9 @@ router.get("/avis/en-attente", getAvisEnAttente);
  *         description: Avis validé
  */
 router.patch("/avis/:id/valider", validerAvis);
+
+
+router.patch("/avis/:id/rejeter", rejeterAvis);
 
 /**
  * @swagger
