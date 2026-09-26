@@ -1,6 +1,7 @@
 // src/controllers/public/cinema/cinema.controller.js
+
+
 import { Cinema, Film, Seance, Salle, Reservation } from "../../../models/index.js";
-// ← Siege et sequelize supprimés (non utilisés)
 import { Op } from "sequelize";
 
 // Récupérer tous les cinémas
@@ -21,7 +22,6 @@ export const getCinemas = async (req, res) => {
 export const getFilmsByCinema = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log(`Récupération des films pour le cinéma ${id}`);
 
     const cinema = await Cinema.findByPk(id);
     if (!cinema) {
@@ -30,7 +30,6 @@ export const getFilmsByCinema = async (req, res) => {
 
     const films = await Film.findAll({
       attributes: ['id', 'titre', 'duree', 'affiche', 'description'],
-       logging: (sql) => console.log('🔍 SQL généré:', sql), // ✅ ajout temporaire
       include: [
         {
           model: Seance,
@@ -45,12 +44,12 @@ export const getFilmsByCinema = async (req, res) => {
               model: Salle,
               as: 'salle',
               required: true,
-              // ✅ snake_case avec alias comme dans getSeancesByFilm
+              // Alias corrigé : [attribut réel, alias de sortie]
               attributes: [
                 'id',
-                ['nom_salle', 'nom'],
-                ['capacite', 'nombrePlaces'],
-                ['qualite_projection', 'qualiteProjection']
+                ['nom_salle', 'nom_salle'],
+                ['capacite', 'capacite'],
+                ['qualite_projection', 'qualite_projection'],
               ],
               include: [
                 {
@@ -68,11 +67,9 @@ export const getFilmsByCinema = async (req, res) => {
       distinct: true
     });
 
-    console.log(`✅ ${films.length} films trouvés`);
     res.status(200).json(films);
-
   } catch (error) {
-    console.error("❌ Erreur getFilmsByCinema:", error.message);
+    console.error("Erreur getFilmsByCinema:", error.message);
     res.status(500).json({
       message: "Erreur lors de la récupération des films",
       error: error.message
@@ -99,7 +96,13 @@ export const getSeancesByFilm = async (req, res) => {
         {
           model: Salle,
           as: 'salle',
-          attributes: ['id', ['nom_salle', 'nom'], ['capacite', 'nombrePlaces'],['qualite_projection', 'qualiteProjection'], 'cinema_id'],
+          attributes: [
+            'id',
+            ['nom_salle', 'nom_salle'],
+            ['capacite', 'capacite'],
+            ['qualite_projection', 'qualite_projection'],
+            'cinema_id',
+          ],
           where: { cinema_id: cinemaId },
           include: [
             {
@@ -123,13 +126,12 @@ export const getSeancesByFilm = async (req, res) => {
     if (seances.length === 0) return res.json([]);
 
     const seancesDisponibles = seances.map(seance => {
-      const salle = seance.salle; // ✅ déclaration de salle
+      const salle = seance.salle;
 
       const placesReservees = seance.reservations
         ?.reduce((sum, r) => sum + (r.nb_places || 0), 0) || 0;
 
-      const capaciteSalle = salle?.nombrePlaces  || 0;
-      console.log('Salle complète:', JSON.stringify(salle?.dataValues, null, 2));
+      const capaciteSalle = salle?.dataValues?.capacite || 0;
       const placesDisponibles = capaciteSalle - placesReservees;
       const isFuture = new Date(seance.dateHeureDebut) >= new Date();
 
@@ -140,9 +142,9 @@ export const getSeancesByFilm = async (req, res) => {
           dateHeureFin: seance.dateHeureFin,
           salle: {
             id: salle.id,
-            nom_salle: salle.nom, // ✅ nom_salle et non salle.nom
+            nom_salle: salle.dataValues.nom_salle,
             capacite: capaciteSalle,
-            qualite_projection: salle.qualiteProjection
+            qualite_projection: salle.dataValues.qualite_projection
           },
           places_disponibles: placesDisponibles,
           places_reservees: placesReservees

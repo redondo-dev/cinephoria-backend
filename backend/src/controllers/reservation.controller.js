@@ -1,43 +1,47 @@
 // src/controllers/reservation.controller.js
-import { Reservation, Seance, Film, Salle, Cinema, Siege ,User,Billet, Tarif } from "../models/index.js";
-import { sendTicketEmail } from '../utils/sendEmailConfirmation.js';
 
+import { Reservation, Seance, Film, Salle, Cinema, Siege, User, Billet, Tarif } from "../models/index.js";
+import { sendTicketEmail } from '../utils/sendEmailConfirmation.js';
 
 export const createReservation = async (req, res) => {
   try {
-    const { utilisateur_id = null, seance_id, nb_places, prix_unitaire, date_expiration,sieges ,statut_reservation,tarif_id} = req.body;
+    const { utilisateur_id = null, seance_id, nb_places, prix_unitaire, date_expiration, sieges, statut_reservation, tarif_id } = req.body;
 
     if (!seance_id || !nb_places || !prix_unitaire) {
       return res.status(400).json({
         message: "Champs obligatoires manquants : seance_id, nb_places, prix_unitaire",
       });
-
     }
 
-      if (prix_unitaire < 0) {
-  return res.status(400).json({ message: "Le prix ne peut pas être négatif" })
-}
+    if (prix_unitaire < 0) {
+      return res.status(400).json({ message: "Le prix ne peut pas être négatif" });
+    }
 
-if (nb_places <= 0) {
-  return res.status(400).json({ message: "Le nombre de places doit être positif" })
-}
+    if (nb_places <= 0) {
+      return res.status(400).json({ message: "Le nombre de places doit être positif" });
+    }
 
-if (!sieges || sieges.length === 0) {
+    if (!sieges || sieges.length === 0) {
       return res.status(400).json({ message: "Au moins un siège doit être sélectionné" });
     }
- 
+
     if (sieges.length !== nb_places) {
       return res.status(400).json({
         message: `nb_places (${nb_places}) ne correspond pas au nombre de sièges fournis (${sieges.length})`,
       });
     }
-// Séance nécessaire pour la date d'expiration du QR (valide jusqu'à la fin de la séance)
-    const seance = await Seance.findByPk(seance_id, { attributes: ['id', 'date_heure_fin'] });
+
+    // ⚠️ Règle Sequelize confirmée empiriquement : dans un tuple [x, alias], x est utilisé
+    // TEL QUEL comme colonne SQL brute (jamais traduit via le mapping field: du modèle),
+    // que ce soit sur une association incluse ou sur le modèle principal de la requête.
+    // Il faut donc le vrai nom de colonne (date_heure_fin), pas le nom d'attribut JS (dateHeureFin).
+    const seance = await Seance.findByPk(seance_id, {
+      attributes: ['id', ['date_heure_fin', 'date_heure_fin']]
+    });
     if (!seance) {
       return res.status(404).json({ message: "Séance non trouvée" });
     }
- 
-   
+
     let resolvedTarifId = tarif_id;
     if (!resolvedTarifId) {
       const tarifParDefaut = await Tarif.findOne({ order: [['id', 'ASC']] });
@@ -46,7 +50,7 @@ if (!sieges || sieges.length === 0) {
       }
       resolvedTarifId = tarifParDefaut.id;
     }
- 
+
     const statutFinal = statut_reservation || 'en_attente';
     const reservation = await Reservation.create({
       utilisateur_id,
@@ -54,10 +58,10 @@ if (!sieges || sieges.length === 0) {
       nb_places,
       prix_unitaire,
       date_expiration: date_expiration || null,
-      statut_reservation:statutFinal, 
+      statut_reservation: statutFinal,
     });
 
- try {
+    try {
       await Billet.bulkCreate(
         sieges.map((siege_id) => ({
           reservation_id: reservation.id,
@@ -66,18 +70,17 @@ if (!sieges || sieges.length === 0) {
           tarif_id: resolvedTarifId,
           statut_billet: statutFinal === 'confirmee' ? 'valide' : 'en_attente',
           prix_final: prix_unitaire,
-          date_expiration_qr: seance.date_heure_fin,
+          date_expiration_qr: seance.dataValues.date_heure_fin,
         }))
       );
-      } catch (billetError) {
-    
+    } catch (billetError) {
       await reservation.destroy();
       if (billetError.name === 'SequelizeUniqueConstraintError') {
         return res.status(409).json({ message: "Un ou plusieurs sièges viennent d'être réservés par quelqu'un d'autre" });
       }
       throw billetError;
     }
- 
+
     return res.status(201).json(reservation);
   } catch (error) {
     console.error("Erreur lors de la création :", error);
@@ -94,7 +97,6 @@ export const getAllReservations = async (req, res) => {
   }
 };
 
-// ✅ Corrigé — avec toutes les jointures
 export const getReservationById = async (req, res) => {
   try {
     const reservation = await Reservation.findByPk(req.params.id, {
@@ -103,51 +105,33 @@ export const getReservationById = async (req, res) => {
           model: Seance,
           as: "seance",
           include: [
-            {
-              model: Film,
-              as: "film",
-              attributes: ["titre"],
-            },
+            { model: Film, as: "film", attributes: ["titre"] },
             {
               model: Salle,
               as: "salle",
               attributes: ["nom"],
-              include: [
-                {
-                  model: Cinema,
-                  as: "cinema",
-                  attributes: ["nom"],
-                },
-              ],
+              include: [{ model: Cinema, as: "cinema", attributes: ["nom"] }],
             },
           ],
         },
         {
-        
           model: Billet,
           as: "billets",
           attributes: ["id", "statut_billet", "qr_code", "prix_final", "siege_id"],
           include: [
-            {
-              model: Siege,
-              as: "siege",
-              attributes: ["rangee", "numero_siege"],
-            },
+            { model: Siege, as: "siege", attributes: ["rangee", "numero_siege"] },
           ],
         },
       ],
     });
-       
 
     if (!reservation) {
       return res.status(404).json({ message: "Réservation non trouvée" });
     }
 
-    console.log("✅ Réservation :", JSON.stringify(reservation, null, 2)); // à retirer après debug
-
     res.json(reservation);
   } catch (error) {
-    console.error("❌ Erreur getReservationById :", error.message);
+    console.error("Erreur getReservationById :", error.message);
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
@@ -181,7 +165,6 @@ export const deleteReservation = async (req, res) => {
   }
 };
 
-// / 2. ✅ Ajouter cette fonction à la fin du fichier
 export const sendTicketByEmail = async (req, res) => {
   try {
     const { id } = req.params;
@@ -191,23 +174,19 @@ export const sendTicketByEmail = async (req, res) => {
         {
           model: Seance, as: 'seance',
           include: [
-            { model: Film,  as: 'film',  attributes: ['titre'] },
-            { model: Salle, as: 'salle', attributes: ['nom'],
+            { model: Film, as: 'film', attributes: ['titre'] },
+            {
+              model: Salle, as: 'salle', attributes: ['nom'],
               include: [{ model: Cinema, as: 'cinema', attributes: ['nom'] }]
             },
           ],
         },
-
         {
           model: Billet,
           as: 'billets',
           attributes: ['id', 'statut_billet', 'siege_id'],
           include: [
-            {
-              model: Siege,
-              as: 'siege',
-              attributes: ['rangee', 'numero_siege'],
-        },
+            { model: Siege, as: 'siege', attributes: ['rangee', 'numero_siege'] },
           ],
         },
       ],
@@ -229,8 +208,7 @@ export const sendTicketByEmail = async (req, res) => {
 
     res.json({ message: 'Email envoyé avec succès' });
   } catch (err) {
-     console.error("❌ Erreur DÉTAILLÉE envoi email billet :", err); 
-    
+    console.error("Erreur envoi email billet :", err);
     res.status(500).json({ message: "Erreur lors de l'envoi de l'email", error: err.message });
   }
 };

@@ -1,26 +1,31 @@
-// controllers/user/commande.controller.
+// controllers/user/commande.controller.js
+
 import { Reservation, Seance, Film, Salle, Cinema, Siege } from '../../models/index.js';
-// 
+
+const SALLE_ATTRIBUTES = ['id', ['nom_salle', 'nom_salle']];
+
+
+
+
+
+const SEANCE_ATTRIBUTES = ['id', ['date_heure_debut', 'dateHeureDebut'], ['date_heure_fin', 'dateHeureFin']];
+
 /**
  * Récupérer toutes les réservations de l'utilisateur
  */
 export const getMesCommandes = async (req, res) => {
-    console.log('🎯 getMesCommandes appelé pour userId:', req.user?.id);
   try {
     const userId = req.user.id;
-    console.log('ID utilisateur depuis le token :', req.user.id);
-
 
     const reservations = await Reservation.findAll({
-      
       where: { utilisateur_id: userId },
-      raw:false,
-      nest:true,
-       include: [
+      raw: false,
+      nest: true,
+      include: [
         {
           model: Seance,
           as: 'seance',
-          attributes: ['id','date_heure_debut', 'date_heure_fin'],
+          attributes: SEANCE_ATTRIBUTES,
           include: [
             {
               model: Film,
@@ -30,7 +35,7 @@ export const getMesCommandes = async (req, res) => {
             {
               model: Salle,
               as: 'salle',
-              attributes: ['id', 'nom_salle'],
+              attributes: SALLE_ATTRIBUTES,
               include: [
                 {
                   model: Cinema,
@@ -43,17 +48,15 @@ export const getMesCommandes = async (req, res) => {
         },
       ],
       order: [['date_creation', 'DESC']],
-      
     });
-console.log('Réservations récupérées :', reservations);
+
     res.status(200).json({
       success: true,
       count: reservations.length,
       data: reservations,
     });
   } catch (error) {
-   console.error('❌ Erreur DÉTAILLÉE getMesCommandes:', error.message); // ← voir message
-    console.error('❌ Stack:', error.stack); 
+    console.error('Erreur getMesCommandes:', error.message);
     res.status(500).json({ error: 'Erreur lors de la récupération des réservations' });
   }
 };
@@ -68,13 +71,13 @@ export const getCommandeById = async (req, res) => {
 
     const reservation = await Reservation.findOne({
       where: { id: reservationId, utilisateur_id: userId },
-       raw: false,
-        nest: true,
+      raw: false,
+      nest: true,
       include: [
         {
           model: Seance,
           as: 'seance',
-          attributes: ['id','date_heure_debut', 'date_heure_fin'],
+          attributes: SEANCE_ATTRIBUTES,
           include: [
             {
               model: Film,
@@ -84,7 +87,7 @@ export const getCommandeById = async (req, res) => {
             {
               model: Salle,
               as: 'salle',
-              attributes: ['id', 'nom_salle'],
+              attributes: SALLE_ATTRIBUTES,
               include: [
                 {
                   model: Cinema,
