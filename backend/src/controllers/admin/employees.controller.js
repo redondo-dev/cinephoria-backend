@@ -1,17 +1,26 @@
 // src/controllers/admin/employees.controller.js
+
+
 import bcrypt from "bcrypt";
-import { User,Role} from "../../models/index.js";
+import crypto from "crypto";
+import { User, Role } from "../../models/index.js";
+import { validatePassword } from "../../utils/validatePassword.js";
+import { sendTemporaryPassword } from "../../utils/sendTemporaryPassword.js";
 
 export const createEmployee = async (req, res) => {
-  console.log("REQ BODY:", req.body);
   try {
-    const { email, password, prenom, nom, username} = req.body;
+    const { email, password, prenom, nom, username } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({ message: "Email et mot de passe requis" });
     }
 
-    // Hash mot de passe
+    if (!validatePassword(password)) {
+      return res.status(400).json({
+        message: "Mot de passe invalide : min 8 caractères, majuscule, minuscule, chiffre et caractère spécial"
+      });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newEmployee = await User.create({
@@ -20,50 +29,57 @@ export const createEmployee = async (req, res) => {
       email,
       username,
       password: hashedPassword,
-      role_id: 3, // id du rôle "employé" `)
+      role_id: 3, // id du rôle "employé"
       isConfirmed: true,
       mustChangePassword: false
     });
 
     res.status(201).json({ message: "Employé créé avec succès", employe: newEmployee });
-
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Erreur serveur" });
   }
 };
 
-// Réinitialiser mot de passe
+// Réinitialiser mot de passe : génère un mot de passe temporaire (comme forgotPassword),
+
 export const resetPassword = async (req, res) => {
   try {
     const { id } = req.params;
-    const { newPassword } = req.body;
-    const hash = await bcrypt.hash(newPassword, 10);
 
-    await User.update({ password: hash }, { where: { id } });
-    res.json({ message: "Mot de passe réinitialisé" });
+    const employee = await User.findByPk(id);
+    if (!employee) {
+      return res.status(404).json({ message: "Employé non trouvé" });
+    }
+
+    const tempPassword = crypto.randomBytes(6).toString("hex"); // 12 caractères
+    const hashedPassword = await bcrypt.hash(tempPassword, 10);
+
+    employee.password = hashedPassword;
+    employee.mustChangePassword = true; // obligatoire à la prochaine connexion
+    await employee.save();
+
+    await sendTemporaryPassword(employee.email, tempPassword);
+
+    res.json({ message: "Mot de passe réinitialisé. Un mot de passe temporaire a été envoyé à l'employé par email." });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-
-
 export const getEmployes = async (req, res) => {
   try {
-    // Récupérer le role_id de "employe" depuis la table roles
-    const employeRole = await Role.findOne({ 
-      where: { nom_role: 'employe' } 
+    const employeRole = await Role.findOne({
+      where: { nom_role: 'employe' }
     });
 
     if (!employeRole) {
       return res.status(404).json({ message: "Rôle employé non trouvé" });
     }
-// Récupérer tous les utilisateurs avec le role_id d'employé
+
     const employes = await User.findAll({
       where: { role_id: employeRole.id },
-      attributes: ['id', 'email', 'nom', 'prenom'], // Exclure le mot de passe
+      attributes: ['id', 'email', 'nom', 'prenom'],
       include: [{
         model: Role,
         as: 'roleDetails',
@@ -71,7 +87,6 @@ export const getEmployes = async (req, res) => {
       }]
     });
 
-    // Formater la réponse
     const formattedEmployes = employes.map(emp => ({
       id: emp.id,
       login: emp.email,
@@ -105,17 +120,23 @@ export const getEmployeById = async (req, res) => {
     res.status(500).json({ message: 'Erreur interne du serveur' });
   }
 };
+
 export const updateEmployee = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nom , prenom , email, username , password } = req.body;
+    const { nom, prenom, email, username, password } = req.body;
 
     const employee = await User.findByPk(id);
-    
     if (!employee) {
       return res.status(404).json({ message: "Employé non trouvé" });
     }
-// Hash le mot de passe uniquement si un nouveau mot de passe est fourni
+
+    if (password && !validatePassword(password)) {
+      return res.status(400).json({
+        message: "Mot de passe invalide : min 8 caractères, majuscule, minuscule, chiffre et caractère spécial"
+      });
+    }
+
     const updatedData = {
       nom: nom || employee.nom,
       prenom: prenom || employee.prenom,
@@ -127,7 +148,6 @@ export const updateEmployee = async (req, res) => {
       updatedData.password = await bcrypt.hash(password, 10);
     }
 
-    // Mise à jour de l'employé
     await employee.update(updatedData);
 
     res.json({ message: "Employé mis à jour avec succès" });
@@ -142,7 +162,6 @@ export const deleteEmployee = async (req, res) => {
     const { id } = req.params;
 
     const employee = await User.findByPk(id);
-    
     if (!employee) {
       return res.status(404).json({ message: "Employé non trouvé" });
     }
