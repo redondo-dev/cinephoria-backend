@@ -1,4 +1,5 @@
 // controllers/public/seance/seance.controller.js
+
 import Seance from '../../../models/seance.model.js';
 import Salle from '../../../models/salle.model.js';
 import Cinema from '../../../models/cinema.model.js';
@@ -15,36 +16,48 @@ export const getAvailableDates = async (req, res) => {
     const seances = await Seance.findAll({
       attributes: ['dateHeureDebut'],
       where: {
-        dateHeureDebut: {
-          [Op.gte]: new Date() 
-        }
+        dateHeureDebut: { [Op.gte]: new Date() }
       },
-      group: ['dateHeureDebut'],
       order: [['dateHeureDebut', 'ASC']],
       raw: true
     });
-    console.log('Séances trouvées:', seances); // Debug
 
- // Si pas de séances, retourner des dates de test
-if (seances.length === 0) {
- 
-  return res.status(200).json([]);
-}
- // Formater et dédupliquer les dates
-   const dateSet = new Set();
-    seances.forEach(s => {
+    if (seances.length === 0) {
+      return res.status(200).json([]);
+    }
+
+    const dateSet = new Set();
+    seances.forEach((s) => {
       if (s.dateHeureDebut) {
         dateSet.add(new Date(s.dateHeureDebut).toISOString().split('T')[0]);
       }
     });
 
-     res.status(200).json(Array.from(dateSet).sort());
+    res.status(200).json(Array.from(dateSet).sort());
   } catch (error) {
     console.error('Erreur getAvailableDates:', error.message);
     res.status(500).json({ success: false, message: 'Erreur dates', error: error.message });
   }
 };
-  
+
+// Mapping centralisé qualité de projection -> mot-clé de recherche dans le nom du tarif.
+// Couvre les 6 valeurs réellement validées côté salle.controller.js.
+const MOTS_CLES_QUALITE = {
+  '2D': '2d',
+  '3D': '3d',
+  'IMAX': 'imax',
+  '4DX': '4dx',
+  'Dolby Cinema': 'dolby',
+  'ScreenX': 'screenx',
+};
+
+function getPrixByQualite(tarifs, qualite, type = 'normal') {
+  const motCle = MOTS_CLES_QUALITE[qualite];
+  const tarif = motCle
+    ? tarifs.find((t) => t.type_tarif === type && t.nom_tarif.toLowerCase().includes(motCle))
+    : null;
+  return tarif?.prix_unitaire ?? 9.5;
+}
 
 /**
  * Récupère les séances d'un film spécifique
@@ -55,67 +68,40 @@ export const getSeancesByFilm = async (req, res) => {
     const { filmId } = req.params;
 
     const seances = await Seance.findAll({
-      
       where: {
-        film_id: filmId,
-        dateHeureDebut: {
-          [Op.gte]: new Date() // Seulement les séances futures
-        }
+        filmId,
+        dateHeureDebut: { [Op.gte]: new Date() }
       },
       include: [
         {
           model: Salle,
           as: 'salle',
-          attributes: ['id', 'nom_salle', 'capacite', 'qualite_projection'],
+          attributes: ['id', ['nom_salle', 'nom_salle'], ['capacite', 'capacite'], ['qualite_projection', 'qualite_projection']],
           include: [
-            {
-              model: Cinema,
-              as: 'cinema',
-              attributes: ['id', 'nom', 'ville', 'adresse']
-            }
+            { model: Cinema, as: 'cinema', attributes: ['id', 'nom', 'ville', 'adresse'] }
           ]
         },
-        {
-          model: Film,
-          as: 'film',
-          attributes: ['id', 'titre']
-        }
+        { model: Film, as: 'film', attributes: ['id', 'titre'] }
       ],
-      order: [
-        
-        ['dateHeureDebut', 'ASC']
-      ]
+      order: [['dateHeureDebut', 'ASC']]
     });
 
-    // Récupérer les tarifs pour calculer les prix
     const tarifs = await Tarif.findAll({
       attributes: ['id', 'nom_tarif', 'type_tarif', 'prix_unitaire']
     });
 
-    // Mapper les prix selon la qualité de projection
-    const getPrixByQualite = (qualite, type = 'normal') => {
-      const mapping = {
-        'Standard': tarifs.find(t => t.type_tarif === type && t.nom_tarif.toLowerCase().includes('standard')),
-        '3D': tarifs.find(t => t.type_tarif === type && t.nom_tarif.toLowerCase().includes('3d')),
-        'IMAX': tarifs.find(t => t.type_tarif === type && t.nom_tarif.toLowerCase().includes('imax')),
-        'VIP': tarifs.find(t => t.type_tarif === type && t.nom_tarif.toLowerCase().includes('vip'))
-      };
-      return mapping[qualite]?.prix_unitaire || 9.50;
-    };
+    const formattedSeances = seances.map((seance) => {
+      const qualite = seance.salle?.dataValues?.qualite_projection || 'Standard';
 
-    // Formater les séances avec les infos nécessaires
-    const formattedSeances = seances.map(seance => {
-      const qualite = seance.salle?.qualite_projection || 'Standard';
-      
       return {
         id: seance.id,
         date: seance.dateHeureDebut.toISOString().split('T')[0],
         heure_debut: seance.dateHeureDebut.toISOString().substring(11, 16),
         heure_fin: seance.dateHeureFin.toISOString().substring(11, 16),
-        qualite: qualite,
-        prix: parseFloat(getPrixByQualite(qualite)),
-        places_disponibles: seance.salle?.capacite || 0,
-        salle: seance.salle?.nom_salle || 'N/A',
+        qualite,
+        prix: parseFloat(getPrixByQualite(tarifs, qualite)),
+        places_disponibles: seance.salle?.dataValues?.capacite || 0,
+        salle: seance.salle?.dataValues?.nom_salle || 'N/A',
         cinema: seance.salle?.cinema?.nom || 'N/A',
         cinema_ville: seance.salle?.cinema?.ville || 'N/A'
       };
@@ -141,9 +127,7 @@ export const getAllSeances = async (req, res) => {
     const { date, cinemaId, filmId } = req.query;
 
     const whereClause = {
-      dateHeureDebut: {
-        [Op.gte]: new Date()
-      }
+      dateHeureDebut: { [Op.gte]: new Date() }
     };
 
     if (date) {
@@ -154,30 +138,21 @@ export const getAllSeances = async (req, res) => {
     }
 
     if (filmId) {
-      whereClause.film_id = filmId;
+      whereClause.filmId = filmId;
     }
 
     const includeClause = [
       {
         model: Salle,
         as: 'salle',
-        attributes: ['id', 'nom_salle', 'capacite', 'qualite_projection'],
+        attributes: ['id', ['nom_salle', 'nom_salle'], ['capacite', 'capacite'], ['qualite_projection', 'qualite_projection']],
         include: [
-          {
-            model: Cinema,
-            as: 'cinema',
-            attributes: ['id', 'nom', 'ville']
-          }
+          { model: Cinema, as: 'cinema', attributes: ['id', 'nom', 'ville'] }
         ]
       },
-      {
-        model: Film,
-        as: 'film',
-        attributes: ['id', 'titre', 'affiche']
-      }
+      { model: Film, as: 'film', attributes: ['id', 'titre', 'affiche'] }
     ];
 
-    // Filtrer par cinéma si spécifié
     if (cinemaId) {
       includeClause[0].include[0].where = { id: cinemaId };
     }
@@ -185,10 +160,7 @@ export const getAllSeances = async (req, res) => {
     const seances = await Seance.findAll({
       where: whereClause,
       include: includeClause,
-      order: [
-       
-        ['dateHeureDebut', 'ASC']
-      ]
+      order: [['dateHeureDebut', 'ASC']]
     });
 
     res.status(200).json(seances);
@@ -215,25 +187,14 @@ export const getSeanceById = async (req, res) => {
         {
           model: Salle,
           as: 'salle',
-          include: [
-            {
-              model: Cinema,
-              as: 'cinema'
-            }
-          ]
+          include: [{ model: Cinema, as: 'cinema' }]
         },
-        {
-          model: Film,
-          as: 'film'
-        }
+        { model: Film, as: 'film' }
       ]
     });
 
     if (!seance) {
-      return res.status(404).json({
-        success: false,
-        message: 'Séance non trouvée'
-      });
+      return res.status(404).json({ success: false, message: 'Séance non trouvée' });
     }
 
     res.status(200).json(seance);
