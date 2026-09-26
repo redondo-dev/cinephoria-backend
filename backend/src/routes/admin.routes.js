@@ -6,10 +6,10 @@ import {
   checkMustChangePassword 
 } from '../middleware/auth.middleware.js';
 
-import { createFilm,getAllFilms,getFilmById,deleteFilm,updateFilm} from '../controllers/admin/film.controller.js';
+import { createFilm,getAllFilms,getFilmById,deleteFilm,updateFilm} from '../controllers/film.controller.js';
 import { createEmployee,getEmployes, getEmployeById,deleteEmployee,updateEmployee, resetPassword} from "../controllers/admin/employees.controller.js";
-import { createSalle,updateSalle, deleteSalle,getAllSalles, getSalleById} from "../controllers/admin/salle.controller.js";
-import {createSeance,updateSeance,deleteSeance,getAllSeances,getSeanceById,checkSeanceAvailability} from "../controllers/admin/seance.controller.js";
+import { createSalle,updateSalle, deleteSalle,getAllSalles, getSalleById} from "../controllers/salle.controller.js";
+import {createSeance,updateSeance,deleteSeance,getAllSeances,getSeanceById,checkSeanceAvailability,bulkDeleteSeances} from "../controllers/seance.controller.js";
 import { dashboardReservations } from "../controllers/mongo/mongo.admin.controller.js";
 
 const router = express.Router();
@@ -51,7 +51,8 @@ router.delete('/films/:id', deleteFilm);
 router.get("/seances", getAllSeances);            
 router.get("/seances/:id", getSeanceById);        
 router.post("/seances", createSeance);            
-router.patch("/seances/:id", updateSeance);       
+router.patch("/seances/:id", updateSeance); 
+router.delete("/seances/bulk", bulkDeleteSeances);      
 router.delete("/seances/:id", deleteSeance);     
 router.get("/seances/:id/disponibilite", checkSeanceAvailability); // Vérifier disponibilité
 
