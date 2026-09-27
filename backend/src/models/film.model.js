@@ -29,6 +29,17 @@ const Film = sequelize.define('Film', {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
+  note_moyenne: {
+    type: DataTypes.FLOAT,
+    allowNull: false,
+    defaultValue: 0,
+  },
+  nombre_avis: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+  },
+ 
 
   },
  {
