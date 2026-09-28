@@ -13,15 +13,24 @@ describe("Register Controller", () => {
         create: jest.fn(),
       },
     }));
-
+    const bcryptMock = {
+    hash: jest.fn(),
+    compare: jest.fn(),
+};
     jest.unstable_mockModule("bcrypt", () => ({
       hash: jest.fn(),
+      default:bcryptMock,
+      ...bcryptMock
     }));
 
-    jest.unstable_mockModule("jsonwebtoken", () => ({
-      sign: jest.fn().mockReturnValue("fake-jwt-token"),
-    }));
+   const jwtMock = {
+  sign: jest.fn().mockReturnValue("fake-jwt-token"),
+};
 
+jest.unstable_mockModule("jsonwebtoken", () => ({
+  default: jwtMock,
+  ...jwtMock,
+}));
     jest.unstable_mockModule("../src/utils/sendTemporaryPassword.js", () => ({
       sendTemporaryPassword: jest.fn(),
     }));
