@@ -1,6 +1,6 @@
 // src/controllers/payment.controller.js
 import Stripe from 'stripe';
-import { Reservation,Billet } from '../models/index.js';
+import { Reservation, Billet } from '../models/index.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -17,7 +17,7 @@ export const createPaymentIntent = async (req, res) => {
     }
 
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(montant * 100), // Stripe travaille en centimes
+      amount: Math.round(montant * 100),
       currency: 'eur',
       automatic_payment_methods: { enabled: true },
       metadata: {
@@ -45,7 +45,7 @@ export const handleWebhook = async (req, res) => {
   let event;
   try {
     event = stripe.webhooks.constructEvent(
-      req.rawBody, // nécessite express.raw() sur cette route
+      req.rawBody,
       sig,
       process.env.STRIPE_WEBHOOK_SECRET
     );
@@ -55,53 +55,37 @@ export const handleWebhook = async (req, res) => {
   }
 
   switch (event.type) {
-    case 'payment_intent.succeeded':
+    case 'payment_intent.succeeded': {
       const paymentIntent = event.data.object;
-       const reservation_id = paymentIntent.metadata?.reservation_id;
-      
-      // Optionnel : créer la réservation ici de façon fiable
+      const reservation_id = paymentIntent.metadata?.reservation_id;
 
-       if (reservation_id) {
+      if (reservation_id) {
         await Reservation.update(
           { statut_reservation: 'confirmee' },
           { where: { id: reservation_id } }
         );
-        console.log(`✅ Réservation #${reservation_id} confirmée`);
-        } else {
-        console.warn('⚠️ Webhook reçu sans reservation_id dans metadata');
-      }
-      break;
 
-    case 'payment_intent.payment_failed':{
-      const paymentIntent = event.data.object;
-      const reservation_id = paymentIntent.metadata?.reservation_id;
-    
-     if (reservation_id) {
-        await Reservation.update(
-          { statut_reservation: 'annulee' },
-          { where: { id: reservation_id } }
-        );
-       
-    const [nbBilletsMisAJour] = await Billet.update(
+        const [nbBilletsMisAJour] = await Billet.update(
           { statut_billet: 'valide' },
           { where: { reservation_id, statut_billet: 'en_attente' } }
         );
         console.log(`✅ Réservation #${reservation_id} confirmée — ${nbBilletsMisAJour} billet(s) validé(s)`);
       } else {
-        console.warn('⚠️ Webhook reçu sans reservation_id dans metadata');
+        console.warn('⚠️ Webhook succeeded reçu sans reservation_id dans metadata');
       }
       break;
     }
- 
+
     case 'payment_intent.payment_failed': {
       const paymentIntent = event.data.object;
       const reservation_id = paymentIntent.metadata?.reservation_id;
- 
+
       if (reservation_id) {
         await Reservation.update(
           { statut_reservation: 'annulee' },
           { where: { id: reservation_id } }
         );
+
         // Billets annulés -> l'index unique partiel les exclut,
         // les sièges redeviennent immédiatement réservables par quelqu'un d'autre.
         const [nbBilletsAnnules] = await Billet.update(
@@ -114,6 +98,7 @@ export const handleWebhook = async (req, res) => {
       }
       break;
     }
+
     default:
       console.log(`Événement Stripe non géré : ${event.type}`);
   }

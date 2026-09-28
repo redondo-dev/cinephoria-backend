@@ -1,5 +1,5 @@
 // src/seeders/reference.seeder.js
-import { Cinema, Salle, Film, Genre, FilmGenre, Seance } from '../models/index.js'
+import { Cinema, Salle, Film, Genre, FilmGenre, Seance, Tarif } from '../models/index.js'
 
 export const seedReferenceData = async () => {
   // Cinema
@@ -41,6 +41,18 @@ export const seedReferenceData = async () => {
   await FilmGenre.findOrCreate({
     where: { film_id: film.id, genre_id: genre.id }
   })
+
+// Tarif par défaut (requis par createReservation pour créer les billets)
+  await Tarif.findOrCreate({
+    where: { nom_tarif: 'Normal' },
+    defaults: {
+      nom_tarif: 'Normal',
+      type_tarif: 'normal',
+      prix_unitaire: 9.90,
+      description: 'Tarif standard de test'
+    }
+  })
+
  // Séance ID 1 (utilisée par les tests API)
   await Seance.findOrCreate({
     where: { id: 1 },
@@ -79,6 +91,16 @@ export const seedReferenceData = async () => {
       dateHeureFin: dateFin
     }
   })
-
-  console.log('✅ Donnees de reference seedees (cinema, salle, film, genre, seances 15 et 3725)')
+// Seance additionnelle utilisee par le parcours réservation e2e complet (id 1576)
+  await Seance.findOrCreate({
+    where: { id: 1576 },
+    defaults: {
+      id: 1576,
+      filmId: film.id,
+      salleId: salle.id,
+      dateHeureDebut: dateDebut,
+      dateHeureFin: dateFin
+    }
+  })
+  console.log('✅ Donnees de reference seedees (cinema, salle, film, genre,tarf, seances 15 1576 et 3725)')
 }

@@ -29,10 +29,22 @@ export const seedTestData = async () => {
   // === 2. SIÈGES DE TEST ===
   console.log('  🌱 Ajout des sièges de test...')
   
-  const sieges = [
-    { id: 43, salle_id: 1, rangee: 'A', numero_siege: 1, type_siege: 'classique', etat_siege: 'Libre', statut_siege: 'Disponible' },
-    { id: 44, salle_id: 1, rangee: 'A', numero_siege: 2, type_siege: 'classique', etat_siege: 'Libre', statut_siege: 'Disponible' }
-  ]
+ const rangees = ['A', 'B', 'C'];
+  const sieges = [];
+  let id = 43;
+  for (const rangee of rangees) {
+    for (let numero = 1; numero <= 10; numero++) {
+      sieges.push({
+        id: id++,
+        salle_id: 1,
+        rangee,
+        numero_siege: numero,
+        type_siege: 'classique',
+        etat_siege: 'Libre',
+        statut_siege: 'Disponible',
+      });
+    }
+  }
 
   for (const s of sieges) {
     await sequelize.query(
@@ -42,17 +54,16 @@ export const seedTestData = async () => {
       { replacements: [s.id, s.salle_id, s.rangee, s.numero_siege, s.type_siege, s.etat_siege, s.statut_siege] }
     )
   }
-  console.log('  ✅ Sièges de test ajoutés (43, 44)')
+  console.log(`  ✅ ${sieges.length} sièges de test ajoutés (ids ${sieges[0].id} à ${sieges[sieges.length - 1].id})`)
 
   console.log('✅ Données de test insérées')
 }
 
 export const cleanTestData = async () => {
   console.log('🧹 Nettoyage...')
-  
-  // Nettoyer les sièges de test
-  await sequelize.query(`DELETE FROM siege WHERE id IN (43, 44)`)
-  
+
+  await sequelize.query(`DELETE FROM siege WHERE id BETWEEN 43 AND 72`)
+
   await User.destroy({
     where: {
       email: ['test@cinema.fr', 'admin@cinema.fr', 'employe@cinema.fr']

@@ -15,8 +15,6 @@ export const getAllFilmsPublic = async (req, res) => {
     const { genre, search, coup_coeur, cinema, date, sort } = req.query;
 
     // Tri : appliqué côté serveur pour porter sur l'ENSEMBLE des résultats filtrés,
-   
- 
     const ordresValides = {
       recent: [['date_ajout', 'DESC']],
       rating: [['note_moyenne', 'DESC']],
@@ -27,8 +25,9 @@ export const getAllFilmsPublic = async (req, res) => {
     if (coup_coeur) where.coup_coeur = true;
     if (search) where.titre = { [Op.iLike]: `%${search}%` };
 
-    // Filtres "Cinéma" et "Jour" (US5) : résolus en deux temps .
-
+    // Filtres "Cinéma" et "Jour" (US5) : résolus en deux temps, via une sous-requête
+    // séparée sur Seance→Salle→Cinema, pour éviter le bug Sequelize "deux hasMany + limit"
+   
     if (cinema || date) {
       const seanceWhere = {};
       if (date) {
@@ -77,7 +76,6 @@ export const getAllFilmsPublic = async (req, res) => {
         },
       ],
     });
-
     res.status(200).json({
       films,
       total: count,
