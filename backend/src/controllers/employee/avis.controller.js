@@ -1,8 +1,8 @@
 // controllers/employee/avis.controller.js
-import { Avis, User, Film } from '../../models/index.js';
-import { Op } from 'sequelize';
 
-//  Récupérer tous les avis
+import { Avis, User, Film } from '../../models/index.js';
+
+// Récupérer tous les avis
 export const getAllAvis = async (req, res) => {
   try {
     const { filmId, statut, page = 1, limit = 20 } = req.query;
@@ -16,16 +16,8 @@ export const getAllAvis = async (req, res) => {
     const { count, rows: avis } = await Avis.findAndCountAll({
       where: filter,
       include: [
-        {
-          model: User,
-          as: 'utilisateur',
-          attributes: ['id', 'nom', 'prenom', 'email']
-        },
-        {
-          model: Film,
-          as: 'film',
-          attributes: ['id', 'titre', 'affiche']
-        }
+        { model: User, as: 'utilisateur', attributes: ['id', 'nom', 'prenom', 'email'] },
+        { model: Film, as: 'film', attributes: ['id', 'titre', 'affiche'] }
       ],
       order: [['date_avis', 'DESC']],
       limit: parseInt(limit),
@@ -58,16 +50,8 @@ export const getAvisEnAttente = async (req, res) => {
     const { count, rows: avis } = await Avis.findAndCountAll({
       where: { statut_avis: 'en_attente' },
       include: [
-        {
-          model: User,
-          as: 'utilisateur',
-          attributes: ['id', 'nom', 'prenom', 'email']
-        },
-        {
-          model: Film,
-          as: 'film',
-          attributes: ['id', 'titre', 'affiche']
-        }
+        { model: User, as: 'utilisateur', attributes: ['id', 'nom', 'prenom', 'email'] },
+        { model: Film, as: 'film', attributes: ['id', 'titre', 'affiche'] }
       ],
       order: [['date_avis', 'ASC']],
       limit: parseInt(limit),
@@ -97,10 +81,7 @@ export const validerAvis = async (req, res) => {
     const avis = await Avis.findByPk(req.params.id);
 
     if (!avis) {
-      return res.status(404).json({
-        success: false,
-        message: 'Avis non trouvé'
-      });
+      return res.status(404).json({ success: false, message: 'Avis non trouvé' });
     }
 
     if (avis.statut_avis !== 'en_attente') {
@@ -111,14 +92,13 @@ export const validerAvis = async (req, res) => {
     }
 
     avis.statut_avis = 'valide';
-    avis.motif_refus = req.user.id; // Employé validateur
+    avis.validated_by = req.user.id; // Employé validateur (corrigé : n'écrase plus motif_refus)
     avis.date_validation = new Date();
     await avis.save();
 
     // Met à jour la note moyenne du film
     await updateFilmRating(avis.film_id);
 
-    // Recharger avec les relations
     await avis.reload({
       include: [
         { model: User, as: 'utilisateur', attributes: ['id', 'nom', 'prenom', 'email'] },
@@ -134,21 +114,69 @@ export const validerAvis = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Erreur lors de la validation de l\'avis',
+      message: "Erreur lors de la validation de l'avis",
       error: error.message
     });
   }
 };
 
-// 🗑 Supprimer un avis
+// Rejeter un avis avec motif (nouvelle fonction — absente jusqu'ici)
+export const rejeterAvis = async (req, res) => {
+  try {
+    const { motif } = req.body;
+    if (!motif || !motif.trim()) {
+      return res.status(400).json({ success: false, message: 'Le motif de refus est obligatoire' });
+    }
+
+    const avis = await Avis.findByPk(req.params.id);
+    if (!avis) {
+      return res.status(404).json({ success: false, message: 'Avis non trouvé' });
+    }
+
+    if (avis.statut_avis !== 'en_attente') {
+      return res.status(400).json({
+        success: false,
+        message: `Cet avis a déjà été ${avis.statut_avis === 'valide' ? 'validé' : 'rejeté'}.`
+      });
+    }
+
+    const etaitValide = false; // en_attente -> rejete, donc jamais compté dans la moyenne
+    avis.statut_avis = 'rejete';
+    avis.motif_refus = motif.trim();
+    avis.validated_by = req.user.id;
+    avis.date_validation = new Date();
+    await avis.save();
+
+    // Un avis en_attente n'a jamais compté dans note_moyenne/nombre_avis (voir updateFilmRating,
+    // filtré sur statut_avis='valide') : pas besoin de recalcul ici, contrairement à validerAvis.
+
+    await avis.reload({
+      include: [
+        { model: User, as: 'utilisateur', attributes: ['id', 'nom', 'prenom', 'email'] },
+        { model: Film, as: 'film', attributes: ['id', 'titre', 'affiche'] }
+      ]
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Avis rejeté',
+      data: avis
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Erreur lors du rejet de l'avis",
+      error: error.message
+    });
+  }
+};
+
+// Supprimer un avis
 export const deleteAvis = async (req, res) => {
   try {
     const avis = await Avis.findByPk(req.params.id);
     if (!avis) {
-      return res.status(404).json({
-        success: false,
-        message: 'Avis non trouvé'
-      });
+      return res.status(404).json({ success: false, message: 'Avis non trouvé' });
     }
 
     const filmId = avis.film_id;
@@ -160,20 +188,17 @@ export const deleteAvis = async (req, res) => {
       await updateFilmRating(filmId);
     }
 
-    res.status(200).json({
-      success: true,
-      message: 'Avis supprimé avec succès'
-    });
+    res.status(200).json({ success: true, message: 'Avis supprimé avec succès' });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Erreur lors de la suppression de l\'avis',
+      message: "Erreur lors de la suppression de l'avis",
       error: error.message
     });
   }
 };
 
-//  Mise à jour de la note moyenne du film
+// Mise à jour de la note moyenne du film
 async function updateFilmRating(filmId) {
   try {
     const [result] = await Avis.findAll({

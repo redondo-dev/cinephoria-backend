@@ -3,8 +3,8 @@ import Film from '../../../models/film.model.js';
 import Seance from '../../../models/seance.model.js';
 import Salle from '../../../models/salle.model.js';
 import Cinema from '../../../models/cinema.model.js';
-import Genre from '../../../models/genre.model.js'; // ✅ ajout
-import { Op } from 'sequelize'; // ✅ ajout pour le filtre search
+import Genre from '../../../models/genre.model.js';
+import { Op } from 'sequelize';
 
 // Récupérer tous les films (route publique)
 export const getAllFilmsPublic = async (req, res) => {
@@ -12,45 +12,50 @@ export const getAllFilmsPublic = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
     const offset = (page - 1) * limit;
-    const { genre, search, coup_coeur, cinema  } = req.query;
+    const { genre, search, coup_coeur, cinema, date, sort } = req.query;
+
+    // Tri : appliqué côté serveur pour porter sur l'ENSEMBLE des résultats filtrés,
+    const ordresValides = {
+      recent: [['date_ajout', 'DESC']],
+      rating: [['note_moyenne', 'DESC']],
+    };
+    const order = ordresValides[sort] || ordresValides.recent;
 
     const where = {};
     if (coup_coeur) where.coup_coeur = true;
     if (search) where.titre = { [Op.iLike]: `%${search}%` };
-if (cinema) {
-      const seancesDansCeCinema = await Seance.findAll({
-        attributes: ['film_id'],
+
+    // Filtres "Cinéma" et "Jour" (US5) : résolus en deux temps, via une sous-requête
+    // séparée sur Seance→Salle→Cinema, pour éviter le bug Sequelize "deux hasMany + limit"
+   
+    if (cinema || date) {
+      const seanceWhere = {};
+      if (date) {
+        const debutJour = new Date(`${date}T00:00:00.000Z`);
+        const finJour = new Date(`${date}T23:59:59.999Z`);
+        seanceWhere.dateHeureDebut = { [Op.between]: [debutJour, finJour] };
+      }
+
+      const seancesCorrespondantes = await Seance.findAll({
+        attributes: ['filmId'],
+        where: seanceWhere,
         include: [
           {
             model: Salle,
             as: 'salle',
             attributes: [],
             required: true,
-            include: [
-              {
-                model: Cinema,
-                as: 'cinema',
-                attributes: [],
-                required: true,
-                where: { id: cinema },
-              },
-            ],
+            where: cinema ? { cinema_id: cinema } : undefined,
           },
         ],
-        group: ['Seance.film_id'],
+        raw: true,
       });
 
-      const filmIds = seancesDansCeCinema.map((s) => s.film_id);
+      const filmIds = [...new Set(seancesCorrespondantes.map((s) => s.filmId))];
 
       if (filmIds.length === 0) {
-        return res.status(200).json({
-          films: [],
-          total: 0,
-          page,
-          totalPages: 0,
-        });
+        return res.status(200).json({ films: [], total: 0, page, totalPages: 0 });
       }
-
       where.id = { [Op.in]: filmIds };
     }
 
@@ -58,7 +63,7 @@ if (cinema) {
       where,
       limit,
       offset,
-      order: [['date_ajout', 'DESC']],
+      order,
       distinct: true,
       include: [
         {

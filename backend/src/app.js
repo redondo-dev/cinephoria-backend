@@ -22,6 +22,7 @@ import protectedRoutes from "../src/routes/auth/protected.routes.js";
 // 👉 Routes protégées
 import adminRoutes from "../src/routes/admin.routes.js";
 import employeeRoutes from "../src/routes/employee.routes.js";
+import genreRoutes from "./routes/genre.routes.js";
 import userRoutes from "../src/routes/user.routes.js";
 import reservationRoutes from "../src/routes/reservation.routes.js";
 import contactRoutes from "../src/routes/contact.routes.js";
@@ -144,8 +145,10 @@ app.get('/health', async (req, res) => {
 });
 
 app.use('/api/films', publicFilmRoutes);
+app.use('/api/genres', genreRoutes);
 app.use('/api/cinemas', publicCinemaRoutes);
 app.use('/api/seances', publicSeancesRoutes);
+
 app.use('/api/public/reservations', publicReservationRoutes);
 
 app.use('/contact', contactLimiter, contactRoutes);

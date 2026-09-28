@@ -1,17 +1,23 @@
-import { Op } from "sequelize";
-import { Seance, Salle, Siege, Billet,Reservation} from "../../../models/index.js";
+// src/controllers/public/siege/siege.controller.js
 
-// 🔹 Récupérer les sièges disponibles d'une séance
+import { Op } from "sequelize";
+import { Seance, Salle, Siege, Billet, Reservation } from "../../../models/index.js";
+
+// Récupérer les sièges disponibles d'une séance
 export const getSiegesDisponibles = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // 1️- Récupérer la séance avec sa salle
     const seance = await Seance.findByPk(id, {
       include: {
         model: Salle,
         as: 'salle',
-        attributes: ['id', 'nom_salle', 'capacite', 'qualite_projection']
+        attributes: [
+          'id',
+          ['nom_salle', 'nom_salle'],
+          ['capacite', 'capacite'],
+          ['qualite_projection', 'qualite_projection'],
+        ]
       }
     });
 
@@ -19,21 +25,18 @@ export const getSiegesDisponibles = async (req, res) => {
       return res.status(404).json({ message: 'Séance non trouvée' });
     }
 
-if (!seance.salle) {
+    if (!seance.salle) {
       return res.status(404).json({ message: 'Salle associée à la séance introuvable' });
     }
 
-
-  
-    // 2️-Récupérer tous les sièges de la salle
     const sieges = await Siege.findAll({
       where: { salle_id: seance.salle.id },
       attributes: ['id', 'numero_siege', 'rangee', 'type_siege'],
       order: [['rangee', 'ASC'], ['numero_siege', 'ASC']]
     });
 
-// 3️- Sièges occupés = billets actifs (non annulés) sur cette séance.
-const billetsActifs = await Billet.findAll({
+    // Sièges occupés = billets actifs (non annulés) sur cette séance.
+    const billetsActifs = await Billet.findAll({
       where: {
         seance_id: id,
         statut_billet: { [Op.ne]: 'annule' },
@@ -41,9 +44,8 @@ const billetsActifs = await Billet.findAll({
       attributes: ['siege_id'],
     });
 
-const siegesReservesIds = new Set(billetsActifs.map(b => b.siege_id));
+    const siegesReservesIds = new Set(billetsActifs.map(b => b.siege_id));
 
-// 4️- Marquer chaque siège comme disponible ou non
     const siegesAvecDisponibilite = sieges.map(siege => ({
       id: siege.id,
       numero: siege.numero_siege,
@@ -52,13 +54,12 @@ const siegesReservesIds = new Set(billetsActifs.map(b => b.siege_id));
       disponible: !siegesReservesIds.has(siege.id)
     }));
 
-    // 6️- Retourner la salle + les sièges avec leur disponibilité
     res.json({
       salle: {
         id: seance.salle.id,
-        nom: seance.salle.nom_salle,
-        capacite: seance.salle.capacite,
-        qualiteProjection: seance.salle.qualite_projection
+        nom: seance.salle.dataValues.nom_salle,
+        capacite: seance.salle.dataValues.capacite,
+        qualiteProjection: seance.salle.dataValues.qualite_projection
       },
       sieges: siegesAvecDisponibilite
     });
@@ -66,50 +67,5 @@ const siegesReservesIds = new Set(billetsActifs.map(b => b.siege_id));
   } catch (error) {
     console.error("Erreur getSiegesDisponibles:", error);
     res.status(500).json({ message: "Erreur lors de la récupération des sièges" });
-  }
-};
-
-
-// Calculer le prix d'une réservation
-export const calculerPrix = async (req, res) => {
-  try {
-    const { seanceId, nbPersonnes } = req.body;
-
-    if (!seanceId || !nbPersonnes) {
-      return res.status(400).json({ 
-        message: "seanceId et nbPersonnes sont requis" 
-      });
-    }
-
-    if (nbPersonnes < 1) {
-      return res.status(400).json({ 
-        message: "Le nombre de personnes doit être au moins 1" 
-      });
-    }
-
-    const seance = await Seance.findByPk(seanceId, {
-      attributes: ['prix'],
-      include: {
-        model: Salle,
-        attributes: ['qualite_projection']
-      }
-    });
-
-    if (!seance) {
-      return res.status(404).json({ message: 'Séance non trouvée' });
-    }
-
-    const prixUnitaire = parseFloat(seance.prix);
-    const prixTotal = prixUnitaire * nbPersonnes;
-
-    res.json({ 
-      prixUnitaire: prixUnitaire.toFixed(2), 
-      prixTotal: prixTotal.toFixed(2),
-      qualiteProjection: seance.Salle.qualite_projection,
-      nbPersonnes
-    });
-  } catch (error) {
-    console.error("Erreur calculerPrix:", error);
-    res.status(500).json({ message: "Erreur lors du calcul du prix" });
   }
 };
