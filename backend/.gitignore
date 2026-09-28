@@ -89,3 +89,6 @@ report.json
 tests/load-tests/results/
 backend/tests/load-tests/results/
 coverage/
+
+*.log
+cpu-stress.csv
