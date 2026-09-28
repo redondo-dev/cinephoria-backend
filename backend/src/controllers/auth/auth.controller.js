@@ -29,7 +29,7 @@ export const login = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(401).json({ message: "Utilisateur non trouvé" });
+      return res.status(401).json({ message: "Identifiants invalides" });
     }
 
     const passwordMatch = await bcrypt.compare(password, user.password);
@@ -63,7 +63,7 @@ export const login = async (req, res) => {
       { expiresIn: "1h" }
     );
 
-    res.cookie("token", token, {
+    res.cookie("auth_token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
@@ -91,7 +91,7 @@ export const login = async (req, res) => {
 
 // LOGOUT
 export const logout = (req, res) => {
-  res.clearCookie("token");
+  res.clearCookie("auth_token");
   res.json({ message: "Déconnexion réussie" });
 };
 
@@ -135,7 +135,7 @@ export const forgotPassword = async (req, res) => {
     if (!email) return res.status(400).json({ message: "Email requis" });
 
     const user = await User.findOne({ where: { email } });
-    if (!user) return res.status(404).json({ message: "Utilisateur non trouvé" });
+    if (!user) return res.status(401).json({ message: "Identifiants invalides" });
 
     await setTemporaryPasswordForUser(user);
 

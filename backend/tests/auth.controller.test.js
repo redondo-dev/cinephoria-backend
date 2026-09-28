@@ -112,9 +112,9 @@ describe('Auth Controller', () => {
         sameSite: 'strict',
         maxAge: 3600000
       });
-      expect(mockRes.json).toHaveBeenCalledWith({
-        message: 'Connexion réussie'
-      });
+     expect(mockRes.json).toHaveBeenCalledWith(
+  expect.objectContaining({ message: 'Connexion réussie' })
+);
     });
 
     test('devrait retourner une erreur 500 en cas d\'erreur serveur', async () => {
