@@ -1,0 +1,9 @@
+{
+  "duree_test": "22.3 minutes",
+  "total_requetes": 5079,
+  "taux_erreur": "0.000%",
+  "temps_moyen": "757ms",
+  "p95": "2842ms",
+  "p99": "N/Ams",
+  "degrade": "OUI"
+}
