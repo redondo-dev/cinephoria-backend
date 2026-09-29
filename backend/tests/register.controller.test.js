@@ -1,8 +1,9 @@
 // tests/register.controller.test.js
 import { jest } from "@jest/globals";
+import { sendAccountConfirmation } from "../src/utils/sendAccountConfirmation.js";
 
 describe("Register Controller", () => {
-  let register, registerWithTempPassword, User, bcrypt, jwt, sendTemporaryPassword;
+  let register, registerWithTempPassword, User, bcrypt, jwt, sendTemporaryPassword, sendAccountConfirmation;
   let req, res;
 
   beforeAll(async () => {
@@ -35,6 +36,9 @@ jest.unstable_mockModule("jsonwebtoken", () => ({
       sendTemporaryPassword: jest.fn(),
     }));
 
+jest.unstable_mockModule("../src/utils/sendAccountConfirmation.js", () => ({
+  sendAccountConfirmation: jest.fn(),
+}));
     // --- Imports dynamiques après les mocks ---
     const controllerModule = await import("../src/controllers/auth/register.controller.js");
     register = controllerModule.register;
@@ -44,6 +48,7 @@ jest.unstable_mockModule("jsonwebtoken", () => ({
     bcrypt = await import("bcrypt");
     jwt = await import("jsonwebtoken");
     sendTemporaryPassword = (await import("../src/utils/sendTemporaryPassword.js")).sendTemporaryPassword;
+    sendAccountConfirmation = (await import("../src/utils/sendAccountConfirmation.js")).sendAccountConfirmation;
   });
 
   beforeEach(() => {

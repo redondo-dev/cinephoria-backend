@@ -3,7 +3,7 @@ import { validatePassword } from "../../utils/validatePassword.js";
 import { validateEmail } from "../../utils/validateEmail.js";
 import jwt from "jsonwebtoken";
 import { sendTemporaryPassword } from "../../utils/sendTemporaryPassword.js";
-import { setTemporaryPasswordForUser } from "../../utils/setTemporaryPasswordForUser.js";
+import { sendAccountConfirmation } from "../../utils/sendAccountConfirmation.js";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
 
@@ -60,6 +60,12 @@ export const register = async (req, res) => {
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
       expiresIn: "1d",
     });
+
+const confirmToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+  expiresIn: "24h",
+});
+
+await sendAccountConfirmation(email, confirmToken);
 
     res.status(201).json({
       message: "Compte créé avec succès",

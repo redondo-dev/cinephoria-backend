@@ -50,12 +50,16 @@ if (process.env.NODE_ENV !== 'test' && process.env.DATABASE_URL) {
   );
 }
 
-// Test de connexion
-sequelize.authenticate()
-  .then(() => console.log(' Connexion à la DB réussie !'))
-  .catch(err => {
-    console.error('Erreur de connexion:');
-    console.error('Message:', err.message);
-  });
+// Test de connexion (désactivé en environnement de test : les tests unitaires
+// mockent leurs propres modèles et n'ont pas besoin d'une vraie connexion,
+// qui échouerait de toute façon avec les identifiants de .env.test).
+if (process.env.NODE_ENV !== 'test') {
+  sequelize.authenticate()
+    .then(() => console.log(' Connexion à la DB réussie !'))
+    .catch(err => {
+      console.error('Erreur de connexion:');
+      console.error('Message:', err.message);
+    });
+}
 
 export default sequelize;
