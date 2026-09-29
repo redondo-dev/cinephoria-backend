@@ -1,7 +1,7 @@
 // src/controllers/public/cinema/cinema.controller.js
 
 
-import { Cinema, Film, Seance, Salle, Reservation } from "../../../models/index.js";
+import { Cinema, Film, Seance, Salle, Reservation, Genre } from "../../../models/index.js";
 import { Op } from "sequelize";
 
 // Récupérer tous les cinémas
@@ -31,6 +31,12 @@ export const getFilmsByCinema = async (req, res) => {
     const films = await Film.findAll({
       attributes: ['id', 'titre', 'duree', 'affiche', 'description'],
       include: [
+        {
+          model: Genre,
+          as: 'genres',
+          attributes: ['id', 'nom'],
+          through: { attributes: [] },
+        },
         {
           model: Seance,
           as: 'seances',
