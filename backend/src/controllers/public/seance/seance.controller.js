@@ -40,23 +40,18 @@ export const getAvailableDates = async (req, res) => {
   }
 };
 
-// Mapping centralisé qualité de projection -> mot-clé de recherche dans le nom du tarif.
-// Couvre les 6 valeurs réellement validées côté salle.controller.js.
-const MOTS_CLES_QUALITE = {
-  '2D': '2d',
-  '3D': '3d',
-  'IMAX': 'imax',
-  '4DX': '4dx',
-  'Dolby Cinema': 'dolby',
-  'ScreenX': 'screenx',
+// Mapping qualité de projection -> prix de base.
+// Aligné sur les 5 qualités réelles (voir salle.qualite_projection).
+const PRIX_BASE_QUALITE = {
+  'Standard': 9.5,
+  'IMAX': 15.0,
+  '4DX': 18.0,
+  'Dolby Atmos': 16.0,
+  'ScreenX': 14.0,
 };
 
-function getPrixByQualite(tarifs, qualite, type = 'normal') {
-  const motCle = MOTS_CLES_QUALITE[qualite];
-  const tarif = motCle
-    ? tarifs.find((t) => t.type_tarif === type && t.nom_tarif.toLowerCase().includes(motCle))
-    : null;
-  return tarif?.prix_unitaire ?? 9.5;
+function getPrixByQualite(tarifs, qualite) {
+  return PRIX_BASE_QUALITE[qualite] ?? 9.5;
 }
 
 /**
