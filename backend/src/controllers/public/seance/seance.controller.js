@@ -103,6 +103,8 @@ export const getSeancesByFilm = async (req, res) => {
         places_disponibles: seance.salle?.dataValues?.capacite || 0,
         salle: seance.salle?.dataValues?.nom_salle || 'N/A',
         cinema: seance.salle?.cinema?.nom || 'N/A',
+        dateHeureDebut: seance.dateHeureDebut,
+        dateHeureFin: seance.dateHeureFin,
         cinema_ville: seance.salle?.cinema?.ville || 'N/A'
       };
     });
