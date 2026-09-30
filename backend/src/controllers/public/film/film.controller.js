@@ -7,6 +7,20 @@ import Genre from '../../../models/genre.model.js';
 import { Op } from 'sequelize';
 
 // Récupérer tous les films (route publique)
+
+// Calcule la date du dernier mercredi (aujourd'hui inclus si on est mercredi).
+// US2 : "tous les films sont ajoutes par un employe ou un administrateur
+// uniquement le mercredi. La page d'accueil doit afficher [...] tous les films
+// ajoutes le dernier mercredi."
+function getDernierMercredi() {
+  const aujourdhui = new Date();
+  const jourSemaine = aujourdhui.getUTCDay(); // 0=dimanche, 3=mercredi
+  const diffJours = (jourSemaine - 3 + 7) % 7;
+  const dernierMercredi = new Date(aujourdhui);
+  dernierMercredi.setUTCDate(aujourdhui.getUTCDate() - diffJours);
+  dernierMercredi.setUTCHours(0, 0, 0, 0);
+  return dernierMercredi;
+}
 export const getAllFilmsPublic = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -22,6 +36,14 @@ export const getAllFilmsPublic = async (req, res) => {
     const order = ordresValides[sort] || ordresValides.recent;
 
     const where = {};
+
+    // US2 : si recent=true, ne montrer que les films ajoutes le dernier mercredi
+    if (req.query.recent === 'true') {
+      const dernierMercredi = getDernierMercredi();
+      const finDernierMercredi = new Date(dernierMercredi);
+      finDernierMercredi.setUTCHours(23, 59, 59, 999);
+      where.date_ajout = { [Op.between]: [dernierMercredi, finDernierMercredi] };
+    }
     if (coup_coeur) where.coup_coeur = true;
     if (search) where.titre = { [Op.iLike]: `%${search}%` };
 
