@@ -38,7 +38,7 @@ export const dashboardReservations = async (req, res) => {
       {
         $group: {
           _id: "$titre",
-          totalReservations: { $sum: "$nb_places" }
+          totalReservations: { $sum: 1 }
         }
       },
       { $sort: { totalReservations: -1 } }
