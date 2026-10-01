@@ -2,6 +2,7 @@
 
 import { Reservation, Seance, Film, Salle, Cinema, Siege, User, Billet, Tarif } from "../models/index.js";
 import { sendTicketEmail } from '../utils/sendEmailConfirmation.js';
+import MongoReservation from "./mongo/mongo.reservation.model.js";
 
 export const createReservation = async (req, res) => {
   try {
@@ -35,8 +36,9 @@ export const createReservation = async (req, res) => {
     // TEL QUEL comme colonne SQL brute (jamais traduit via le mapping field: du modèle),
     // que ce soit sur une association incluse ou sur le modèle principal de la requête.
     // Il faut donc le vrai nom de colonne (date_heure_fin), pas le nom d'attribut JS (dateHeureFin).
-    const seance = await Seance.findByPk(seance_id, {
-      attributes: ['id', ['date_heure_fin', 'date_heure_fin']]
+       const seance = await Seance.findByPk(seance_id, {
+      attributes: ['id', ['date_heure_fin', 'date_heure_fin'], 'film_id'],
+      include: [{ model: Film, as: 'film', attributes: ['id', 'titre'] }]
     });
     if (!seance) {
       return res.status(404).json({ message: "Séance non trouvée" });
@@ -81,6 +83,21 @@ export const createReservation = async (req, res) => {
       throw billetError;
     }
 
+
+    // Ecriture dans MongoDB pour les statistiques du tableau de bord admin.
+    // Volontairement isolee dans son propre try/catch : un echec MongoDB ne doit
+    // jamais faire echouer la creation de la reservation elle-meme (PostgreSQL).
+    if (statutFinal === 'confirmee') {
+      try {
+        await MongoReservation.create({
+          film_id: seance.film_id,
+          titre: seance.film?.titre || 'Titre inconnu',
+          nb_places,
+        });
+      } catch (mongoError) {
+        console.error('Erreur ecriture MongoDB (statistiques) :', mongoError);
+      }
+    }
     return res.status(201).json(reservation);
   } catch (error) {
     console.error("Erreur lors de la création :", error);
