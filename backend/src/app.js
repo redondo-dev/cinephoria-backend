@@ -61,6 +61,10 @@ const allowedOrigins = [
    /^https:\/\/cinephoria-.*\.vercel\.app$/,
   /^https:\/\/.*-riads-projects-4e98048c\.vercel\.app$/,
   
+  // Domaine personnalise
+  'https://cinephoria-app.com',
+  'https://www.cinephoria-app.com',
+  
   // Développement local
   'http://localhost:4200',
   'http://localhost:3000',
