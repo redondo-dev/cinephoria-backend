@@ -18,7 +18,7 @@ const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
  * @param {string} [fromName] - nom expediteur affiche (optionnel)
  */
 export const sendEmailViaBrevo = async (to, subject, htmlContent, fromEmail, fromName = "Cinephoria") => {
-  const senderEmail = fromEmail || process.env.SMTP_USER;
+  const senderEmail = fromEmail || "noreply@cinephoria-app.com";
 
   if (!process.env.BREVO_API_KEY) {
     throw new Error("BREVO_API_KEY manquante dans les variables d'environnement");
