@@ -3,7 +3,7 @@
 // L'autorisation (isAdmin / isAdminOrEmploye) est déjà gérée au niveau des routes dans app.js.
 
 
-import { Film, Seance, Genre } from '../models/index.js';
+import { sequelize, Film, Seance, Genre } from '../models/index.js';
 
 // ======================================================
 // Récupérer tous les films
@@ -68,34 +68,31 @@ export const createFilm = async (req, res) => {
   try {
     const {
       titre, description, affiche, age_min, duree,
-      date_ajout, coup_coeur, note_moyenne, nb_avis, genre_id
+      date_ajout, coup_coeur, genre_id
     } = req.body;
 
-    // Champs obligatoires : titre, durée et genre (cf. MCD : FILM (1,N) — GENRE, un film doit
-    // avoir au moins un genre). date_ajout a une valeur par défaut (NOW) côté modèle, non bloquant.
-    if (!titre || !duree || !genre_id) {
+    // Validation AVANT toute ecriture : titre, duree et au moins un genre valide
+    // (cf. MCD : FILM (1,N) — GENRE). note_moyenne et nombre_avis sont des champs
+    // calcules a partir des avis : ils ne sont pas saisis ici (valeur par defaut 0).
+    const genres = Array.isArray(genre_id) ? genre_id : [genre_id];
+    if (!titre || !duree || genres.length === 0 || genres.some((g) => !g)) {
       return res.status(400).json({
         success: false,
         message: 'Titre, durée et au moins un genre sont obligatoires'
       });
     }
 
-    const film = await Film.create({
-      titre, description, affiche, age_min, duree,
-      date_ajout, coup_coeur, note_moyenne, nb_avis,
-    });
-
-    // Association des genres via la table de jonction film_genre — jamais via une colonne
-    // genre_id directe, qui n'existe pas sur Film.
-    const genres = Array.isArray(genre_id) ? genre_id : [genre_id];
-    if (genres.length === 0) {
-      await film.destroy();
-      return res.status(400).json({ success: false, message: 'Au moins un genre est obligatoire' });
-    }
-    await film.setGenres(genres);
-
-    const filmComplet = await Film.findByPk(film.id, {
-      include: [{ model: Genre, as: 'genres', attributes: ['id', 'nom'], through: { attributes: [] } }],
+    // Film + liaisons film_genre dans une seule transaction : tout est enregistre, ou rien.
+    const filmComplet = await sequelize.transaction(async (t) => {
+      const film = await Film.create(
+        { titre, description, affiche, age_min, duree, date_ajout, coup_coeur },
+        { transaction: t }
+      );
+      await film.setGenres(genres, { transaction: t });
+      return Film.findByPk(film.id, {
+        include: [{ model: Genre, as: 'genres', attributes: ['id', 'nom'], through: { attributes: [] } }],
+        transaction: t,
+      });
     });
 
     res.status(201).json({ success: true, message: 'Film créé avec succès', data: filmComplet });
@@ -104,6 +101,12 @@ export const createFilm = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: error.errors.map((e) => e.message).join(', ')
+      });
+    }
+    if (error.name === 'SequelizeForeignKeyConstraintError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Un ou plusieurs genres sont inexistants'
       });
     }
     res.status(500).json({
@@ -126,33 +129,38 @@ export const updateFilm = async (req, res) => {
 
     const {
       titre, description, affiche, age_min, duree,
-      date_ajout, coup_coeur, note_moyenne, nb_avis, genre_id
+      date_ajout, coup_coeur, genre_id
     } = req.body;
 
-    // film.update(), pas findByPk(id, data, options) — cette dernière forme ne sauvegarde rien.
-    await film.update({
-      ...(titre !== undefined && { titre }),
-      ...(description !== undefined && { description }),
-      ...(affiche !== undefined && { affiche }),
-      ...(age_min !== undefined && { age_min }),
-      ...(duree !== undefined && { duree }),
-      ...(date_ajout !== undefined && { date_ajout }),
-      ...(coup_coeur !== undefined && { coup_coeur }),
-      ...(note_moyenne !== undefined && { note_moyenne }),
-      ...(nb_avis !== undefined && { nb_avis }),
-      updatedBy: req.user?.id || null,
-    });
-
+    // Validation AVANT toute ecriture : si les genres sont fournis, il en faut au moins un valide.
+    let genres;
     if (genre_id !== undefined) {
-      const genres = Array.isArray(genre_id) ? genre_id : [genre_id];
-      if (genres.length === 0) {
+      genres = Array.isArray(genre_id) ? genre_id : [genre_id];
+      if (genres.length === 0 || genres.some((g) => !g)) {
         return res.status(400).json({
           success: false,
           message: 'Un film doit conserver au moins un genre'
         });
       }
-      await film.setGenres(genres);
     }
+
+    // Modification du film et de ses genres dans une seule transaction.
+    // film.update(), pas findByPk(id, data, options) — cette derniere forme ne sauvegarde rien.
+    await sequelize.transaction(async (t) => {
+      await film.update({
+        ...(titre !== undefined && { titre }),
+        ...(description !== undefined && { description }),
+        ...(affiche !== undefined && { affiche }),
+        ...(age_min !== undefined && { age_min }),
+        ...(duree !== undefined && { duree }),
+        ...(date_ajout !== undefined && { date_ajout }),
+        ...(coup_coeur !== undefined && { coup_coeur }),
+      }, { transaction: t });
+
+      if (genres) {
+        await film.setGenres(genres, { transaction: t });
+      }
+    });
 
     const updatedFilm = await Film.findByPk(req.params.id, {
       include: [{ model: Genre, as: 'genres', attributes: ['id', 'nom'], through: { attributes: [] } }],
@@ -164,6 +172,12 @@ export const updateFilm = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: error.errors.map((e) => e.message).join(', ')
+      });
+    }
+    if (error.name === 'SequelizeForeignKeyConstraintError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Un ou plusieurs genres sont inexistants'
       });
     }
     res.status(500).json({
