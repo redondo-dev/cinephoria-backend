@@ -4,9 +4,24 @@ import { Reservation, Seance, Film, Salle, Cinema, Siege, User, Billet, Tarif } 
 import { sendTicketEmail } from '../utils/sendEmailConfirmation.js';
 import MongoReservation from "./mongo/mongo.reservation.model.js";
 
+// --- Controle d'acces : le jeton fournit req.user (id, role_id, role) ---
+// Personnel = administrateur (role_id 2) ou employe (role_id 3), cf. middleware d'authentification.
+const estPersonnel = (user) =>
+  [2, 3].includes(user?.role_id) ||
+  ['ADMIN', 'EMPLOYE'].includes(String(user?.role).toUpperCase());
+
+// Une reservation n'est accessible qu'a son proprietaire et au personnel.
+const peutAcceder = (user, reservation) =>
+  estPersonnel(user) ||
+  (reservation.utilisateur_id != null && Number(reservation.utilisateur_id) === Number(user?.id));
+
 export const createReservation = async (req, res) => {
   try {
-    const { utilisateur_id = null, seance_id, nb_places, prix_unitaire, date_expiration, sieges, statut_reservation, tarif_id } = req.body;
+    const { utilisateur_id: utilisateurDemande = null, seance_id, nb_places, prix_unitaire, date_expiration, sieges, statut_reservation, tarif_id } = req.body;
+
+    // Le proprietaire vient du jeton (authenticate garantit req.user), jamais du corps de la requete :
+    // seul le personnel peut creer une reservation au nom d'un client.
+    const utilisateur_id = estPersonnel(req.user) ? utilisateurDemande : req.user.id;
 
     if (!seance_id || !nb_places || !prix_unitaire) {
       return res.status(400).json({
@@ -107,6 +122,10 @@ export const createReservation = async (req, res) => {
 
 export const getAllReservations = async (req, res) => {
   try {
+    if (!estPersonnel(req.user)) {
+      return res.status(403).json({ message: "Accès refusé" });
+    }
+
     const reservations = await Reservation.findAll();
     res.json(reservations);
   } catch (error) {
@@ -146,6 +165,10 @@ export const getReservationById = async (req, res) => {
       return res.status(404).json({ message: "Réservation non trouvée" });
     }
 
+    if (!peutAcceder(req.user, reservation)) {
+      return res.status(403).json({ message: "Accès refusé" });
+    }
+
     res.json(reservation);
   } catch (error) {
     console.error("Erreur getReservationById :", error.message);
@@ -155,8 +178,20 @@ export const getReservationById = async (req, res) => {
 
 export const updateReservation = async (req, res) => {
   try {
+    if (!estPersonnel(req.user)) {
+      return res.status(403).json({ message: "Accès refusé" });
+    }
+
+    // Liste blanche : seul le statut est modifiable (cf. Swagger). Le prix, le proprietaire,
+    // la seance... ne doivent jamais etre modifies depuis le corps de la requete.
+    const { statut_reservation } = req.body ?? {};
+    const donnees = statut_reservation !== undefined ? { statut_reservation } : {};
+    if (Object.keys(donnees).length === 0) {
+      return res.status(400).json({ message: "Aucun champ modifiable fourni (statut_reservation)" });
+    }
+
     const { id } = req.params;
-    const [updated] = await Reservation.update(req.body, { where: { id } });
+    const [updated] = await Reservation.update(donnees, { where: { id } });
 
     if (!updated) {
       return res.status(404).json({ message: "Réservation non trouvée" });
@@ -170,6 +205,10 @@ export const updateReservation = async (req, res) => {
 
 export const deleteReservation = async (req, res) => {
   try {
+    if (!estPersonnel(req.user)) {
+      return res.status(403).json({ message: "Accès refusé" });
+    }
+
     const deleted = await Reservation.destroy({ where: { id: req.params.id } });
 
     if (!deleted) {
@@ -211,6 +250,10 @@ export const sendTicketByEmail = async (req, res) => {
 
     if (!reservation) {
       return res.status(404).json({ message: 'Réservation non trouvée' });
+    }
+
+    if (!peutAcceder(req.user, reservation)) {
+      return res.status(403).json({ message: 'Accès refusé' });
     }
 
     const user = await User.findByPk(reservation.utilisateur_id, {
