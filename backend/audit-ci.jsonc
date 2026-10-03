@@ -1,4 +1,10 @@
 {
   "high": true,
-  "allowlist": ["GHSA-w5hq-g745-h8pq", "GHSA-mh99-v99m-4gvg"],
+  "allowlist": [
+    // nodemon > chokidar > braces : outil de developpement (rechargement a chaud avec npm run dev),
+    // jamais lance en production (Render execute start:prod = node src/server.js)
+    "GHSA-vfj7-8cjw-p6xm", // braces - DoS par motifs imbriques (high)
+    "GHSA-w5hq-g745-h8pq",
+    "GHSA-mh99-v99m-4gvg"
+  ]
 }
