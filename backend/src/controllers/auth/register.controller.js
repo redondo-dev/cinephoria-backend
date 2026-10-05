@@ -52,7 +52,7 @@ export const register = async (req, res) => {
       prenom,
       nom,
       username,
-      role_id: role_id || 1, // Par défaut client
+      role_id: 1,  // L'inscription publique crée toujours un client
       isConfirmed: false,
       mustChangePassword: false,
     });
