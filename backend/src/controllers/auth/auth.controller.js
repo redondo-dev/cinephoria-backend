@@ -82,6 +82,7 @@ export const login = async (req, res) => {
         role: userRole,
         prenom: user.prenom,
         nom: user.nom,
+        mustChangePassword: user.mustChangePassword,
       },
     });
   } catch (err) {
@@ -104,11 +105,16 @@ export const logout = (req, res) => {
 };
 
 export const changeTempPassword = async (req, res) => {
-  try {
-    const { userId, newPassword } = req.body;
+ 
+    try {
+    const { newPassword } = req.body;
+    const userId = req.user?.id; // l'identifiant vient du jeton, jamais du corps de la requête
 
-    if (!userId || !newPassword)
-      return res.status(400).json({ message: "userId et nouveau mot de passe requis" });
+    if (!userId)
+      return res.status(401).json({ message: "Authentification requise" });
+
+    if (!newPassword)
+      return res.status(400).json({ message: "Nouveau mot de passe requis" });
 
     if (!validatePassword(newPassword)) {
       return res.status(400).json({
