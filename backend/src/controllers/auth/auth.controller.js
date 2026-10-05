@@ -72,6 +72,7 @@ export const login = async (req, res) => {
     });
 
     res.json({
+      token,
       message: "Connexion réussie",
       user: {
         id: user.id,
