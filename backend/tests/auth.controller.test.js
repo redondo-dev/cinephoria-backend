@@ -113,7 +113,7 @@ describe('Auth Controller', () => {
         maxAge: 3600000
       });
       expect(mockRes.json).toHaveBeenCalledWith(
-        expect.objectContaining({ message: 'Connexion réussie' })
+        expect.objectContaining({ message: 'Connexion réussie',token: 'fake.jwt.token' })
       );
     });
 
