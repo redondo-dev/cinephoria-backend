@@ -5,8 +5,9 @@ import { confirmEmail } from "../../controllers/auth/confirm.controller.js";
 import { register,registerWithTempPassword } from "../../controllers/auth/register.controller.js";
 import { resetPassword } from "../../controllers/auth/auth.controller.js";
 import {verifyCaptcha} from "../../middleware/verifyCaptcha.middleware.js";
-
+import { authenticate } from "../../middleware/auth.middleware.js";
 const router = express.Router();
+
 
 
 /**
@@ -273,6 +274,11 @@ router.post("/forgot-password-visiteur", forgotPasswordVisitor);
  *         description: Erreur dans les données envoyées
  */
 router.post("/reset-password", resetPassword);
+
+router.get('/me', authenticate, (req, res) => {
+  res.json({ user: req.user }); // req.user posé par le middleware authenticate
+});
+
 
 export default router;
 
