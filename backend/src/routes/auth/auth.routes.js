@@ -5,7 +5,7 @@ import { confirmEmail } from "../../controllers/auth/confirm.controller.js";
 import { register,registerWithTempPassword } from "../../controllers/auth/register.controller.js";
 import { resetPassword } from "../../controllers/auth/auth.controller.js";
 import {verifyCaptcha} from "../../middleware/verifyCaptcha.middleware.js";
-import { authenticate } from "../../middleware/auth.middleware.js";
+import { authenticate,isAdmin } from "../../middleware/auth.middleware.js";
 const router = express.Router();
 
 
@@ -76,7 +76,7 @@ router.post("/register",verifyCaptcha, register);
  *       201:
  *         description: Compte créé avec mot de passe temporaire envoyé par email
  */
-router.post("/register-temp", registerWithTempPassword);
+router.post("/register-temp",authenticate, isAdmin, registerWithTempPassword);
 
 /**
  * @swagger
@@ -157,7 +157,7 @@ router.post("/forgot-password", forgotPassword);
  *       400:
  *         description: Token ou mot de passe temporaire invalide
  */
-router.post("/change-temp-password", changeTempPassword);
+router.post("/change-temp-password",authenticate,changeTempPassword);
 
 /**
  * @swagger

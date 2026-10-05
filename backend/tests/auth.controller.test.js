@@ -2,11 +2,13 @@ import { jest } from '@jest/globals';
 
 // Mocks avant les imports
 const mockUserModel = {
-  findOne: jest.fn()
+  findOne: jest.fn(),
+  findByPk: jest.fn()
 };
 
 const mockBcrypt = {
-  compare: jest.fn()
+  compare: jest.fn(),
+  hash: jest.fn()
 };
 
 const mockJwt = {
@@ -28,7 +30,7 @@ jest.unstable_mockModule('jsonwebtoken', () => ({
 }));
 
 // Import après les mocks
-const { login, logout } = await import('../src/controllers/auth/auth.controller.js');
+const { login, logout, changeTempPassword } = await import('../src/controllers/auth/auth.controller.js');
 
 describe('Auth Controller', () => {
   let mockReq, mockRes;
@@ -113,7 +115,28 @@ describe('Auth Controller', () => {
         maxAge: 3600000
       });
       expect(mockRes.json).toHaveBeenCalledWith(
-        expect.objectContaining({ message: 'Connexion réussie',token: 'fake.jwt.token' })
+        expect.objectContaining({ message: 'Connexion réussie', token: 'fake.jwt.token' })
+      );
+    });
+
+    test("signale au frontend qu'un mot de passe temporaire doit être changé", async () => {
+      mockReq.body = { email: 'test@example.com', password: 'password123' };
+
+      mockUserModel.findOne.mockResolvedValue({
+        id: 1,
+        email: 'test@example.com',
+        password: 'hashedpassword',
+        mustChangePassword: true
+      });
+      mockBcrypt.compare.mockResolvedValue(true);
+      mockJwt.sign.mockReturnValue('fake.jwt.token');
+
+      await login(mockReq, mockRes);
+
+      expect(mockRes.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          user: expect.objectContaining({ mustChangePassword: true })
+        })
       );
     });
 
@@ -165,6 +188,32 @@ describe('Auth Controller', () => {
       expect(mockRes.json).toHaveBeenCalledWith({
         message: 'Déconnexion réussie'
       });
+    });
+  });
+
+  describe('changeTempPassword', () => {
+    test("utilise l'identifiant du jeton et ignore le userId envoyé dans le corps", async () => {
+      mockReq.user = { id: 7 };
+      mockReq.body = { userId: 1, newPassword: 'Nouveau123!' };
+      const utilisateur = { id: 7, mustChangePassword: true, save: jest.fn() };
+      mockUserModel.findByPk.mockResolvedValue(utilisateur);
+      mockBcrypt.hash.mockResolvedValue('hash-du-nouveau');
+
+      await changeTempPassword(mockReq, mockRes);
+
+      expect(mockUserModel.findByPk).toHaveBeenCalledWith(7);
+      expect(utilisateur.password).toBe('hash-du-nouveau');
+      expect(utilisateur.mustChangePassword).toBe(false);
+      expect(mockRes.status).toHaveBeenCalledWith(200);
+    });
+
+    test('refuse une requête sans utilisateur authentifié, sans toucher à la base', async () => {
+      mockReq.body = { userId: 1, newPassword: 'Nouveau123!' };
+
+      await changeTempPassword(mockReq, mockRes);
+
+      expect(mockUserModel.findByPk).toHaveBeenCalledTimes(0);
+      expect(mockRes.status).toHaveBeenCalledWith(401);
     });
   });
 });

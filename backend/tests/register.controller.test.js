@@ -111,4 +111,16 @@ jest.unstable_mockModule("../src/utils/sendAccountConfirmation.js", () => ({
       })
     );
   });
+  it("ignore le role_id envoyé : l'inscription publique crée toujours un client", async () => {
+    User.findOne.mockResolvedValue(null);
+    bcrypt.hash.mockResolvedValue("hashedPassword");
+    User.create.mockResolvedValue({ id: 1, email: "john@example.com", username: "johndoe", role_id: 1, isConfirmed: false, mustChangePassword: false });
+    req.body.role_id = 2; // un visiteur essaie de se donner le rôle administrateur
+
+    await register(req, res);
+
+    expect(User.create).toHaveBeenCalledWith(expect.objectContaining({ role_id: 1 }));
+  });
 });
+
+  
