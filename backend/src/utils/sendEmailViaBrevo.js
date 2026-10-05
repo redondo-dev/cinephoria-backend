@@ -1,3 +1,4 @@
+
 // src/utils/sendEmailViaBrevo.js
 //
 // Envoie un email via l'API HTTP de Brevo, plutot que via SMTP.
@@ -14,10 +15,12 @@ const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
  * @param {string} to - adresse email du destinataire
  * @param {string} subject - objet de l'email
  * @param {string} htmlContent - contenu HTML de l'email
- * @param {string} [fromEmail] - adresse expediteur (optionnel, sinon SMTP_USER)
+ * @param {string} [fromEmail] - adresse expediteur (optionnel, sinon noreply@cinephoria-app.com)
  * @param {string} [fromName] - nom expediteur affiche (optionnel)
+ * @param {{ replyTo?: { email: string, name?: string } }} [options] - adresse de reponse (optionnel) :
+ *        utile pour le formulaire de contact, afin de repondre directement au visiteur
  */
-export const sendEmailViaBrevo = async (to, subject, htmlContent, fromEmail, fromName = "Cinephoria") => {
+export const sendEmailViaBrevo = async (to, subject, htmlContent, fromEmail, fromName = "Cinephoria", options = {}) => {
   const senderEmail = fromEmail || "noreply@cinephoria-app.com";
 
   if (!process.env.BREVO_API_KEY) {
@@ -36,6 +39,7 @@ export const sendEmailViaBrevo = async (to, subject, htmlContent, fromEmail, fro
       to: [{ email: to }],
       subject,
       htmlContent,
+      ...(options.replyTo ? { replyTo: options.replyTo } : {}),
     }),
   });
 
