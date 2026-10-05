@@ -43,10 +43,34 @@ const app = express();
 // ----------------------------
 
 // Helmets → sécurise les headers HTTP
+// app.use(helmet({
+//     crossOriginResourcePolicy: { policy: "cross-origin" },
+//      contentSecurityPolicy: false 
+// }));
 app.use(helmet({
-    crossOriginResourcePolicy: { policy: "cross-origin" },
-     contentSecurityPolicy: false 
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc:  ["'self'", "'unsafe-inline'"],  // Angular en a besoin
+      imgSrc:    ["'self'", "data:", "https:"],   // pour tes affiches de films
+      connectSrc:["'self'", "https://www.cinephoria-app.com"],
+      fontSrc:   ["'self'", "https:", "data:"],
+      objectSrc: ["'none'"],
+      frameSrc:  ["'none'"],
+    },
+  },
+  hsts: {
+    maxAge: 31536000,       // HSTS 1 an → corrige "Strict-Transport-Security Not Set"
+    includeSubDomains: true,
+    preload: true,
+  },
+  xPoweredBy: false,        // corrige "Server Leaks Version Information"
+  referrerPolicy: { policy: "strict-origin-when-cross-origin" },
 }));
+
+app.disable('x-powered-by'); // sécurité supplémentaire
 
 const allowedOrigins = [
   // Vos domaines Vercel (ajoutez TOUS vos domaines)
