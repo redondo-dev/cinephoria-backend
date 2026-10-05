@@ -12,7 +12,8 @@ import { validateEmail } from "../../utils/validateEmail.js";
 import { validatePassword } from "../../utils/validatePassword.js";
 import { setTemporaryPasswordForUser } from "../../utils/setTemporaryPasswordForUser.js";
 
-const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
+const JWT_SECRET = process.env.JWT_SECRET ;
+if (!JWT_SECRET) throw new Error("JWT_SECRET manquant dans les variables d'environnement");
 
 // LOGIN
 export const login = async (req, res) => {
@@ -72,7 +73,6 @@ export const login = async (req, res) => {
 
     res.json({
       message: "Connexion réussie",
-      token,
       user: {
         id: user.id,
         name: user.name || user.prenom || user.email,
@@ -85,13 +85,20 @@ export const login = async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: err.message });
+   res.status(500).json({
+  message: "Erreur serveur",
+  ...(process.env.NODE_ENV !== "production" && { detail: err.message })
+});
   }
 };
 
 // LOGOUT
 export const logout = (req, res) => {
-  res.clearCookie("auth_token");
+  res.clearCookie("auth_token",{
+    httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "strict", 
+  });
   res.json({ message: "Déconnexion réussie" });
 };
 
@@ -124,7 +131,10 @@ export const changeTempPassword = async (req, res) => {
 
     res.status(200).json({ message: "Mot de passe changé avec succès" });
   } catch (err) {
-    res.status(500).json({ message: "Erreur lors du changement de mot de passe", error: err.message });
+   res.status(500).json({
+  message: "Erreur serveur",
+  ...(process.env.NODE_ENV !== "production" && { detail: err.message })
+});
   }
 };
 
@@ -135,7 +145,7 @@ export const forgotPassword = async (req, res) => {
     if (!email) return res.status(400).json({ message: "Email requis" });
 
     const user = await User.findOne({ where: { email } });
-    if (!user) return res.status(401).json({ message: "Identifiants invalides" });
+    if (!user) return res.status(401).json({ message: "Si ce compte existe, un email a été envoyé." });
 
     await setTemporaryPasswordForUser(user);
 
@@ -143,7 +153,10 @@ export const forgotPassword = async (req, res) => {
       message: "Un mot de passe temporaire vous a été envoyé par email. Vous devriez le changer à la prochaine connexion."
     });
   } catch (err) {
-    res.status(500).json({ message: "Erreur serveur", error: err.message });
+    res.status(500).json({
+  message: "Erreur serveur",
+  ...(process.env.NODE_ENV !== "production" && { detail: err.message })
+});
   }
 };
 
