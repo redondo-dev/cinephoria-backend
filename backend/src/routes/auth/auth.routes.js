@@ -157,7 +157,7 @@ router.post("/forgot-password", forgotPassword);
  *       400:
  *         description: Token ou mot de passe temporaire invalide
  */
-router.post("/change-temp-password", changeTempPassword);
+router.post("/change-temp-password",authenticate,changeTempPassword);
 
 /**
  * @swagger
