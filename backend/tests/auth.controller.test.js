@@ -112,9 +112,9 @@ describe('Auth Controller', () => {
         sameSite: 'strict',
         maxAge: 3600000
       });
-     expect(mockRes.json).toHaveBeenCalledWith(
-  expect.objectContaining({ message: 'Connexion réussie' })
-);
+      expect(mockRes.json).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'Connexion réussie' })
+      );
     });
 
     test('devrait retourner une erreur 500 en cas d\'erreur serveur', async () => {
@@ -125,9 +125,32 @@ describe('Auth Controller', () => {
       await login(mockReq, mockRes);
       
       expect(mockRes.status).toHaveBeenCalledWith(500);
+      // Hors production, le détail de l'erreur est joint pour faciliter le débogage
       expect(mockRes.json).toHaveBeenCalledWith({
-        message: 'Erreur DB'
+        message: 'Erreur serveur',
+        detail: 'Erreur DB'
       });
+    });
+
+    test('en production, ne renvoie jamais le détail de l\'erreur au visiteur', async () => {
+      mockReq.body = { email: 'test@example.com', password: 'password123' };
+      mockUserModel.findOne.mockRejectedValue(new Error('Erreur DB : détail interne'));
+
+      const envOriginal = process.env.NODE_ENV;
+      const consoleOriginal = console.error;
+      process.env.NODE_ENV = 'production';
+      console.error = () => {};
+
+      try {
+        await login(mockReq, mockRes);
+      } finally {
+        process.env.NODE_ENV = envOriginal;
+        console.error = consoleOriginal;
+      }
+
+      expect(mockRes.status).toHaveBeenCalledWith(500);
+      expect(mockRes.json).toHaveBeenCalledWith({ message: 'Erreur serveur' });
+      expect(JSON.stringify(mockRes.json.mock.calls[0][0])).not.toContain('Erreur DB');
     });
   });
 
@@ -135,7 +158,10 @@ describe('Auth Controller', () => {
     test('devrait déconnecter et supprimer le cookie', () => {
       logout(mockReq, mockRes);
       
-      expect(mockRes.clearCookie).toHaveBeenCalledWith('auth_token');
+      expect(mockRes.clearCookie).toHaveBeenCalledWith(
+        'auth_token',
+        expect.objectContaining({ httpOnly: true, sameSite: 'strict' })
+      );
       expect(mockRes.json).toHaveBeenCalledWith({
         message: 'Déconnexion réussie'
       });
