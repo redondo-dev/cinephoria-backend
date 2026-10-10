@@ -7,8 +7,8 @@ const incidentsController = {
     try {
       const incidents = await Incident.findAll({
         include: [
-          { model: Salle, as: 'salle' },
-          { model: User, as: 'utilisateur' }
+          { model: Salle, as: 'salle', attributes: ['id', ['nom_salle', 'nom']] },
+          { model: User, as: 'utilisateur', attributes: ['id', 'prenom', 'nom'] }
         ],
         order: [['date_incident', 'DESC']]
       });
