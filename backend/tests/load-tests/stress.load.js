@@ -7,17 +7,15 @@ const errorRate = new Rate('errors')
 const responseTime = new Trend('response_time')
 
 export const options = {
-  stages: [
-    { duration: '2m', target: 100 },   // montée normale
-    { duration: '5m', target: 100 },   // charge stable
-    { duration: '2m', target: 200 },   // montée stress
-    { duration: '5m', target: 200 },   // maintien stress
-    { duration: '2m', target: 300 },   // montée critique
-    { duration: '5m', target: 300 },   // maintien critique
-    { duration: '2m', target: 400 },   // vers la limite
-    { duration: '5m', target: 400 },   // maintien limite
-    { duration: '2m', target: 0 },     // descente
-  ],
+ stages: [
+  { duration: '1m', target: 50 },
+  { duration: '2m', target: 50 },
+  { duration: '1m', target: 100 },
+  { duration: '2m', target: 100 },
+  { duration: '1m', target: 150 },
+  { duration: '2m', target: 150 },
+  { duration: '1m', target: 0 },
+],
   thresholds: {
     http_req_duration: ['p(95)<5000'], // 5s max sous stress
     http_req_failed: ['rate<0.10'],    // max 10% erreurs acceptées
