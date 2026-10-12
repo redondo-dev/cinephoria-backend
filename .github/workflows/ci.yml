@@ -198,10 +198,12 @@ jobs:
 
       - name: Demarrer le serveur backend
         working-directory: ./backend
-        run: npm run dev &
+        run: |
+          mkdir -p tests/load-tests/results
+          node src/server.js > server.log 2>&1 &
 
       - name: Attendre que le serveur soit pret
-        run: npx wait-on http://localhost:3000/api/films --timeout 30000
+        run: npx wait-on http://localhost:3000/api/films --timeout 60000
 
       - name: Installer k6
         run: |
@@ -224,8 +226,9 @@ jobs:
         if: always()
         with:
           name: k6-results
-          path: backend/tests/load-tests/results/
-
+          path: |
+            backend/tests/load-tests/results/
+            backend/server.log
   # Les tests API et E2E Cypress necessitent le backend ET le frontend
   # actifs simultanement. Ils sont geres dans le repo cinephoria-orchestration,
   # qui demarre l'ensemble via Docker Compose et y fait tourner la suite
