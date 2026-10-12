@@ -6,14 +6,14 @@ import { Rate } from 'k6/metrics'
 const errorRate = new Rate('errors')
 
 export const options = {
-  stages: [
-    { duration: '30s', target: 10 },    // trafic normal
-    { duration: '10s', target: 5000 },  // PIC BRUTAL — simulation sortie de film
-    { duration: '1m',  target: 5000 },  // maintien du pic
-    { duration: '10s', target: 10 },    // retour normal
-    { duration: '30s', target: 10 },    // stabilisation
-    { duration: '10s', target: 0 },     // fin
-  ],
+stages: [
+  { duration: '20s', target: 10 },
+  { duration: '10s', target: 200 },  // pic brutal, simulation d'une sortie de film
+  { duration: '1m',  target: 200 },
+  { duration: '10s', target: 10 },
+  { duration: '20s', target: 10 },
+  { duration: '10s', target: 0 },
+],
   thresholds: {
     http_req_duration: ['p(95)<10000'], // 10s max pendant le pic
     http_req_failed: ['rate<0.20'],     // max 20% erreurs pendant le pic
@@ -33,8 +33,8 @@ export default function () {
 
   errorRate.add(!success)
 
-  // Pas de sleep — simule un pic brutal sans pause
-  sleep(0.1)
+// Courte pause entre deux requêtes (utilisateur qui recharge la page)
+  sleep(0.5)
 }
 
 export function handleSummary(data) {

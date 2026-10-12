@@ -101,7 +101,6 @@ app.use(cors({
   origin: function (origin, callback) {
     // Autoriser les requêtes sans origin (Postman, electron)
     if (!origin) {
-      console.log('[CORS] Requête sans origin (Electron/outil)');
       return callback(null, true);
     }
     
@@ -115,7 +114,6 @@ app.use(cors({
     });
     
     if (isAllowed) {
-      console.log(' [CORS] Origine autorisée:', origin);
       callback(null, true);
     } else {
       console.log(' [CORS] Origine refusée:', origin);
